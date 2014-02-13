@@ -7,6 +7,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ public class ADT {
 
     public ADT(TypeElement typeElement, ProcessingEnvironment env) {
         fullName = typeElement.getQualifiedName().toString();
+        env.getMessager().printMessage(Diagnostic.Kind.NOTE, "Processing type: " + fullName);
         if(fullName.contains(".")) {
             simpleName = fullName.substring(fullName.lastIndexOf('.') + 1, fullName.length());
             // TODO: Will be buggy with nested classes!
@@ -51,7 +53,10 @@ public class ADT {
         return simpleName;
     }
 
-    String commaSeparatedTypeParams(){
+    /**
+     * @param full Whether to return the FULL type parameter specification, e.g. <T extends Comparable<T>> or the short one (e.g. <T>).
+     */
+    String commaSeparatedTypeParams(boolean full){
         List<? extends TypeParameterElement> typeParams = typeElement.getTypeParameters();
         if(typeParams.isEmpty()) {
             return "";
@@ -65,15 +70,47 @@ public class ADT {
                 } else {
                     sb.append(",");
                 }
-                sb.append(e.asType().toString());
+
+                if(full) {
+                    sb.append(getFullTypeParamName(e));
+                }
+                else {
+                    sb.append(e.getSimpleName());
+                }
             }
 
             return sb.toString();
         }
     }
 
-    String getParamList() {
-        String pars = commaSeparatedTypeParams();
+    private static String getFullTypeParamName(TypeParameterElement e) {
+        StringBuilder sb = new StringBuilder();
+        String mainType = e.asType().toString();
+        sb.append(mainType);
+
+        List<? extends TypeMirror> bounds = e.getBounds();
+        if(bounds.size() == 0) {
+            return sb.toString();
+        }
+        else {
+            sb.append(" extends ");
+            boolean first = true;
+            for(TypeMirror tm : bounds) {
+                if(first) {
+                    first = false;
+                } else {
+                    sb.append(" & ");
+                }
+
+                sb.append(tm.toString());
+            }
+
+            return sb.toString();
+        }
+    }
+
+    String getParamList(boolean full) {
+        String pars = commaSeparatedTypeParams(full);
         return pars.length() == 0 ? "" : "<" + pars + ">";
     }
 
@@ -106,7 +143,8 @@ public class ADT {
 
     private void generateVisitorClass() throws Exception {
         final String csName = simpleName + "Visitor";
-        final String fullName = csName + "<" + commaSeparatedTypeParams() + (commaSeparatedTypeParams().length() == 0 ? "" : ",") +"result>";
+        final String fTypeParams = commaSeparatedTypeParams(true);
+        final String fullName = csName + "<" + fTypeParams + (fTypeParams.length() == 0 ? "" : ",") +"result>";
 
         Writer out = filer.createSourceFile(thePackage+"."+csName).openWriter();
         out.write(getPackageDef());
@@ -132,13 +170,13 @@ public class ADT {
 
         out.write( getPackageDef());
         out.write("public abstract class ");
-        out.write(getSimpleName()+"Adt"+getParamList());
+        out.write(getSimpleName() + "Adt" + getParamList(true));
         out.write(" extends "+fullName+"\n");
         out.write(" implements Iterable<Object>{\n");
 
         out.write("  abstract public <b_> b_ welcome("
-                + simpleName + "Visitor<" + commaSeparatedTypeParams()
-                +(commaSeparatedTypeParams().length()==0?"":",")
+                + simpleName + "Visitor<" + commaSeparatedTypeParams(false)
+                +(commaSeparatedTypeParams(false).length()==0?"":",")
                 +"b_> visitor);\n");
         out.write("}");
         out.close();

@@ -24,9 +24,9 @@ class Constructor {
         out.write(theType.getPackageDef());
         out.write("public class ");
         out.write(name);
-        out.write(theType.getParamList());
+        out.write(theType.getParamList(true));
         out.write(" extends ");
-        out.write(theType.getSimpleName() + "Adt" + theType.getParamList());
+        out.write(theType.getSimpleName() + "Adt" + theType.getParamList(false));
         out.write("{\n");
 
         mkFields(out);
@@ -97,8 +97,8 @@ class Constructor {
     private void mkWelcomeMethod(ADT theType, Writer out)
             throws IOException {
         out.write("  public <_b> _b welcome("
-                + theType.simpleName + "Visitor<" + theType.commaSeparatedTypeParams()
-                + (theType.commaSeparatedTypeParams().length() == 0 ? "" : ",")
+                + theType.simpleName + "Visitor<" + theType.commaSeparatedTypeParams(false)
+                + (theType.commaSeparatedTypeParams(false).length() == 0 ? "" : ",")
                 + "_b> visitor){"
                 + "\n    return visitor.visit(this);\n  }\n");
     }
@@ -142,6 +142,6 @@ class Constructor {
 
     public String mkVisitMethod(ADT theType) {
         return "public abstract result visit("
-                + name + theType.getParamList() + " _);";
+                + name + theType.getParamList(false) + " _);";
     }
 }

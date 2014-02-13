@@ -15,8 +15,8 @@ import java.util.Set;
  * Heart of the annotation processor.
  * Requires Java 8.
  */
-@SupportedAnnotationTypes("Data")
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
+@SupportedAnnotationTypes("de.hsrm.cs.jscala.annotations.Data")
+@SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class AdtGen extends AbstractProcessor {
 
     @Override
