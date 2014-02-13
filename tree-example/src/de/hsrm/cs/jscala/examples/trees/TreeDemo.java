@@ -20,8 +20,8 @@ public class TreeDemo {
         System.out.println("Tree size: " + t.size());
         System.out.println("Sum of elements in tree: " + t.fold(0, 0, (a, b) -> a + b));
 
-        t = t.map((el) -> el + 5);
-        System.out.println("Added 5 to every element in the tree. Resulting tree:\n\t" + t);
+        t = t.map((el) -> el + 10);
+        System.out.println("Added 10 to every element in the tree. Resulting tree:\n\t" + t);
         System.out.println("New sum: " + t.fold(0, 0, (a, b) -> a + b));
     }
 }
