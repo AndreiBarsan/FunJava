@@ -8,14 +8,15 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.tools.Diagnostic;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Created by Andrei Barsan on 12.02.2014, based on code by Prof. Dr. Sven Eric Panitz.
+ * Heart of the annotation processor.
+ * Requires Java 8.
  */
-@SupportedAnnotationTypes("de.hsrm.cs.jscala.annotations.Data")
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
+@SupportedAnnotationTypes("Data")
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class AdtGen extends AbstractProcessor {
 
     @Override
@@ -45,7 +46,7 @@ public class AdtGen extends AbstractProcessor {
                         ExecutableElement method = (ExecutableElement) el;
                         m.printMessage(Diagnostic.Kind.NOTE, "Found method \"" + method.getSimpleName() + "\".");
                         if (null != el.getAnnotation(Ctor.class)) {
-                            adt.addConstr(method.getSimpleName().toString(), method.getParameters());
+                            adt.addCtor(method.getSimpleName().toString(), method.getParameters());
                         }
                     }
                 }
