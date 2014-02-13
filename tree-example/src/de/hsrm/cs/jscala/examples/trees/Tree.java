@@ -3,22 +3,49 @@ package de.hsrm.cs.jscala.examples.trees;
 import de.hsrm.cs.jscala.PatternMatchException;
 import de.hsrm.cs.jscala.annotations.Ctor;
 import de.hsrm.cs.jscala.annotations.Data;
+import de.hsrm.cs.jscala.api.Matching;
 import de.hsrm.cs.jscala.helpers.*;
 
-@Data public class Tree<T> {
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+
+@Data public class Tree<T extends Comparable<T>> implements Matching<Tree<T>> {
 
     @Ctor void Branch(Tree<T> left, T data, Tree<T> right) { }
     @Ctor void Empty() { }
 
-    int size(){
-        return this.match(
-            caseEmpty (()       -> 0),
+    public int size(){
+        return match(
+            caseEmpty (()         -> 0),
             caseBranch((l, el, r) -> l.size() + 1 + r.size())
         );
     }
 
-    public <U> Tree<U> map(Function1<T, U> mapFunction) {
-        return this.match(
+    public Tree<T> add(T element) {
+        return match(
+            caseEmpty (()               -> new Branch(new Empty(), element, new Empty())),
+            caseBranch((l, current, r)  -> {
+                if(element.compareTo(current) < 0) {
+                    return new Branch(l.add(element), current, r);
+                }
+                else {
+                    return new Branch(l, current, r.add(element));
+                }
+            })
+
+        );
+    }
+
+    public boolean contains(T element) {
+        return match(
+            caseEmpty (()           -> false),
+            caseBranch((l, el, r)   -> element.equals(el) ? true : (l.contains(element) || r.contains(element)))
+        );
+    }
+
+    public <U extends Comparable<U>> Tree<U> map(Function1<T, U> mapFunction) {
+        return match(
             caseEmpty (()           -> new Empty<U>()),
             caseBranch((l, el, r)   -> new Branch<U>(l.map(mapFunction), mapFunction.apply(el), r.map(mapFunction)))
         );
@@ -31,27 +58,31 @@ import de.hsrm.cs.jscala.helpers.*;
      * @return The final result starting with this node, going downwards.
      */
     public T fold(T startValue, T neutralValue, Function2<T, T, T> operation) {
-        return operation.apply(startValue, this.match(
-                caseEmpty(() -> neutralValue),
+        return operation.apply(startValue, match(
+                caseEmpty (() -> neutralValue),
                 caseBranch((l, el, r) -> operation.apply(operation.apply(l.fold(startValue, neutralValue, operation), el), r.fold(startValue, neutralValue, operation)))
         ));
     }
 
-    <B> B match(Function1< Tree<T>, Option<B> >... cases){
-        for (Function1< Tree<T>,Option<B> > theCase : cases){
-            Option<B> result = theCase.apply(this);
-            if (!result.isEmpty()) {
-                return result.get();
-            }
-        }
-        throw new PatternMatchException("unmatched pattern");
-    }
-
+    /*
+    See: Issues.md for a discussion regarding this.
     @Override
     public String toString() {
         return match(
             caseEmpty( ()           -> "( )" ),
             caseBranch((l, el, r)   -> "( " + l + ", [" + el + "], " + r + " )")
+        );
+    }
+    */
+
+    protected List<T> asList(){
+        return asList(new LinkedList<>());
+    }
+
+    public List<T> asList(List<T> result){
+        return match(
+            caseBranch((l,el,r) -> {l.asList(result);result.add(el);r.asList(result);return result;}),
+            otherwise ((x)      ->  result)
         );
     }
 
@@ -68,8 +99,7 @@ import de.hsrm.cs.jscala.helpers.*;
         }
     }
      */
-
-    public static <A, B> Function1<Tree<A>, Option<B>> caseBranch(Function3<Tree<A>, A, Tree<A>, B> theCase) {
+    public static <A extends Comparable<A>, B> Function1<Tree<A>, Option<B>> caseBranch(Function3<Tree<A>, A, Tree<A>, B> theCase) {
         return (self) -> {
             if (!(self instanceof Branch)) return new None();
             Branch<A> branch = (Branch<A>) self;
@@ -77,11 +107,15 @@ import de.hsrm.cs.jscala.helpers.*;
         };
     }
 
-    public static <A, B> Function1<Tree<A>, Option<B>> caseEmpty(Function0<B> theCase) {
+    public static <A extends Comparable<A>, B> Function1<Tree<A>, Option<B>> caseEmpty(Function0<B> theCase) {
         return (self) -> {
             if (!(self instanceof Empty)) return new None();
             Empty<A> empty = (Empty<A>) self;
             return new Some(theCase.apply());
         };
+    }
+
+    public static <A extends Comparable<A>, B> Function1<Tree<A>, Option<B>> otherwise(Function1<Tree<A>, B> theCase){
+        return (dies)-> new Some(theCase.apply(dies));
     }
 }
