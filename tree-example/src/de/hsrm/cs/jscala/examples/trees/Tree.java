@@ -6,14 +6,35 @@ import de.hsrm.cs.jscala.annotations.Data;
 import de.hsrm.cs.jscala.helpers.*;
 
 @Data public class Tree<T> {
+
     @Ctor void Branch(Tree<T> left, T data, Tree<T> right) { }
     @Ctor void Empty() { }
 
     int size(){
         return this.match(
-                caseEmpty(  ()       -> 0),
-                caseBranch( (l,el,r) -> l.size() + 1 + r.size())
-                );
+            caseEmpty (()       -> 0),
+            caseBranch((l, el, r) -> l.size() + 1 + r.size())
+        );
+    }
+
+    public <U> Tree<U> map(Function1<T, U> mapFunction) {
+        return this.match(
+            caseEmpty (()           -> new Empty<U>()),
+            caseBranch((l, el, r)   -> new Branch<U>(l.map(mapFunction), mapFunction.apply(el), r.map(mapFunction)))
+        );
+    }
+
+    /**
+     * @param startValue Starting value for the fold operation.
+     * @param neutralValue Neutral value for the operation (e.g. 0 for addition, 1 for multiplication)
+     * @param operation The operation used for folding.
+     * @return The final result starting with this node, going downwards.
+     */
+    public T fold(T startValue, T neutralValue, Function2<T, T, T> operation) {
+        return operation.apply(startValue, this.match(
+                caseEmpty(() -> neutralValue),
+                caseBranch((l, el, r) -> operation.apply(operation.apply(l.fold(startValue, neutralValue, operation), el), r.fold(startValue, neutralValue, operation)))
+        ));
     }
 
     <B> B match(Function1< Tree<T>, Option<B> >... cases){
@@ -24,6 +45,14 @@ import de.hsrm.cs.jscala.helpers.*;
             }
         }
         throw new PatternMatchException("unmatched pattern");
+    }
+
+    @Override
+    public String toString() {
+        return match(
+            caseEmpty( ()           -> "( )" ),
+            caseBranch((l, el, r)   -> "( " + l + ", [" + el + "], " + r + " )")
+        );
     }
 
     /*

@@ -16,6 +16,7 @@ public class TreeDemo {
                     new Branch(e, 16, new Branch(e, 2, e))
                 );
 
+        System.out.println("Tree: " + t);
         System.out.println("Tree size: " + t.size());
     }
 }

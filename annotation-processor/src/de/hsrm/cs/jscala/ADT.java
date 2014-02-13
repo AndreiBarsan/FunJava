@@ -106,13 +106,11 @@ public class ADT {
 
     private void generateVisitorClass() throws Exception {
         final String csName = simpleName + "Visitor";
-        final String fullName
-                = csName+"<"+commaSepPs()
-                +(commaSepPs().length()==0?"":",")
-                +"result>";
+        final String fullName = csName + "<" + commaSepPs() + (commaSepPs().length() == 0 ? "" : ",") +"result>";
+
         Writer out = filer.createSourceFile(thePackage+"."+csName).openWriter();
-        out.write( getPackageDef());
-        out.write( "\n");
+        out.write(getPackageDef());
+        out.write("\n\n");
         out.write("public abstract class ");
         out.write(fullName+"{\n");
         for (Constructor c:constructors)
