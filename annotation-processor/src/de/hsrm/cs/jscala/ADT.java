@@ -4,9 +4,7 @@ import de.hsrm.cs.jscala.helpers.Dbg;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.TypeParameterElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import java.io.Writer;
@@ -19,7 +17,18 @@ import java.util.List;
 public class ADT {
 
     String fullName;
+
+    /**
+     * The simple name of the class, without enclosing types and package.
+     */
     String simpleName;
+    /**
+     * The enclosing type(s) of our class, without the package name. Empty if our class isn't nested.
+     */
+    String enclosingTypes;
+    /**
+     * The package our class (and, if it applies, consequently, its enclosing types) reside(s) in.
+     */
     String thePackage;
 
     public List<Constructor> constructors = new ArrayList<>();
@@ -27,13 +36,77 @@ public class ADT {
     final Filer filer;
     private ProcessingEnvironment env;
 
+    // TODO: move helpers outta here
+    /**
+     * n == 1 means lastIndexOf
+     */
+    public static int lastNthIndexOf(String s, char c, int n) {
+        int occ = 0;
+        for(int i = s.length() - 1; i >= 0; --i) {
+            if(s.charAt(i) == c) {
+                occ++;
+            }
+
+            if(n == occ) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    public static int nthIndexOf(String s, char c, int n) {
+        int occ = 0;
+        for(int i = 0; i < s.length(); ++i) {
+            if(s.charAt(i) == c) {
+                occ++;
+            }
+
+            if(n == occ) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     public ADT(TypeElement typeElement, ProcessingEnvironment env) {
         fullName = typeElement.getQualifiedName().toString();
         env.getMessager().printMessage(Diagnostic.Kind.NOTE, "Processing type: " + fullName);
+
+        Element enclosing  = typeElement.getEnclosingElement();
+        int enclosingClasses = 0;
+
+        if(typeElement.getNestingKind().isNested()) {
+            env.getMessager().printMessage(Diagnostic.Kind.NOTE, "Our type is nested. Nesting kind: " + typeElement.getNestingKind());
+
+            while(enclosing.getKind() != ElementKind.PACKAGE) {
+                enclosingClasses++;
+
+                // TODO: check if it works with nested classes in the default package
+                enclosing = enclosing.getEnclosingElement();
+
+                if(enclosingClasses > 128) {
+                    // wat
+                    env.getMessager().printMessage(Diagnostic.Kind.ERROR, "Much nesting. Wow. Such overload. Much error.");
+                    break;
+                }
+            }
+
+            env.getMessager().printMessage(Diagnostic.Kind.NOTE, "We have " + enclosingClasses + " class(es) above us.");
+        }
+
         if(fullName.contains(".")) {
-            simpleName = fullName.substring(fullName.lastIndexOf('.') + 1, fullName.length());
-            // TODO: Will be buggy with nested classes!
-            thePackage = fullName.substring(0, fullName.lastIndexOf('.'));
+            // The index of the dot that separates the package name and the top wrapper class, in case this class is nested
+            int psDotIndex = lastNthIndexOf(fullName, '.', enclosingClasses + 1);
+            thePackage = fullName.substring(0, psDotIndex);
+            if(typeElement.getNestingKind().isNested()) {
+                enclosingTypes = fullName.substring(psDotIndex + 1, fullName.lastIndexOf("."));
+            }
+            else {
+                enclosingTypes = "";
+            }
+            simpleName = fullName.substring(fullName.lastIndexOf(".") + 1, fullName.length());
         }
         else {
             simpleName = fullName;
