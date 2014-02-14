@@ -9,6 +9,7 @@ import de.hsrm.cs.jscala.helpers.*;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 @Data public class Tree<T extends Comparable<T>> implements Matching<Tree<T>> {
 
@@ -81,7 +82,7 @@ import java.util.List;
 
     public List<T> asList(List<T> result){
         return match(
-            caseBranch((l,el,r) -> {l.asList(result);result.add(el);r.asList(result);return result;}),
+            caseBranch((l,el,r) -> {l.asList(result); result.add(el); r.asList(result); return result; }),
             otherwise ((x)      ->  result)
         );
     }
@@ -89,33 +90,33 @@ import java.util.List;
     /*
     This is how a "template" might look, in case we want to dynamically generate such a method:
 
-    public static <A, B> Function1<$TYPE$, Option<B>> case$CURRENT_PATTERN$(Function$CURRENT_PATTERN_MEMBER_COUNT$<$CURRENT_PATTERN_MEMBER_TYPES$> theCase) {
+    public static <A, B> Function1<$TYPE$, Optional<B>> case$CURRENT_PATTERN$(Function$CURRENT_PATTERN_MEMBER_COUNT$<$CURRENT_PATTERN_MEMBER_TYPES$> theCase) {
     return (self) -> {
-        if(! (self instanceof $CURRENT_PATTERN$) ) return new None();
+        if(! (self instanceof $CURRENT_PATTERN$) ) return Optional.empty();
         else {
             $CURRENT_PATTERN$$CURRENT_PATTERN_TYPE_PARAMS$ matchedBranch = ($CURRENT_PATTERN$$CURRENT_PATTERN_TYPE_PARAMS$) self;
-            return new Some(theCase.apply( $CURRENT_PATTERN_MEMBER_GETTERS$ );
+            return Optional.of(theCase.apply( $CURRENT_PATTERN_MEMBER_GETTERS$ );
             }
         }
     }
      */
-    public static <A extends Comparable<A>, B> Function1<Tree<A>, Option<B>> caseBranch(Function3<Tree<A>, A, Tree<A>, B> theCase) {
+    public static <A extends Comparable<A>, B> Function1<Tree<A>, Optional<B>> caseBranch(Function3<Tree<A>, A, Tree<A>, B> theCase) {
         return (self) -> {
-            if (!(self instanceof Branch)) return new None();
+            if (!(self instanceof Branch)) return Optional.empty();
             Branch<A> branch = (Branch<A>) self;
-            return new Some(theCase.apply(branch.getLeft(), branch.getData(), branch.getRight()));
+            return Optional.of(theCase.apply(branch.getLeft(), branch.getData(), branch.getRight()));
         };
     }
 
-    public static <A extends Comparable<A>, B> Function1<Tree<A>, Option<B>> caseEmpty(Function0<B> theCase) {
+    public static <A extends Comparable<A>, B> Function1<Tree<A>, Optional<B>> caseEmpty(Function0<B> theCase) {
         return (self) -> {
-            if (!(self instanceof Empty)) return new None();
+            if (!(self instanceof Empty)) return Optional.empty();
             Empty<A> empty = (Empty<A>) self;
-            return new Some(theCase.apply());
+            return Optional.of(theCase.apply());
         };
     }
 
-    public static <A extends Comparable<A>, B> Function1<Tree<A>, Option<B>> otherwise(Function1<Tree<A>, B> theCase){
-        return (dies)-> new Some(theCase.apply(dies));
+    public static <A extends Comparable<A>, B> Function1<Tree<A>, Optional<B>> otherwise(Function1<Tree<A>, B> theCase){
+        return (self)-> Optional.of(theCase.apply(self));
     }
 }

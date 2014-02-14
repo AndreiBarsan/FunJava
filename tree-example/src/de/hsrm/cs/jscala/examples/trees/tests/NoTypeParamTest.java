@@ -4,14 +4,12 @@ import de.hsrm.cs.jscala.PatternMatchException;
 import de.hsrm.cs.jscala.annotations.Ctor;
 import de.hsrm.cs.jscala.annotations.Data;
 import de.hsrm.cs.jscala.api.Matching;
-import de.hsrm.cs.jscala.helpers.Function0;
 import de.hsrm.cs.jscala.helpers.Function1;
-import de.hsrm.cs.jscala.helpers.None;
-import de.hsrm.cs.jscala.helpers.Some;
-import de.hsrm.cs.jscala.helpers.Option;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+
+import java.util.Optional;
 
 import static junit.framework.Assert.*;
 
@@ -26,19 +24,19 @@ public class NoTypeParamTest {
         @Ctor void HoldsInt(Integer value) { };
         @Ctor void HoldsString(String data) { };
 
-        public static <B> Function1<SimpleCase, Option<B>> caseHoldsInt(Function1<Integer, B> theCase) {
+        public static <B> Function1<SimpleCase, Optional<B>> caseHoldsInt(Function1<Integer, B> theCase) {
             return (self) -> {
-                if(! (self instanceof HoldsInt)) return new None();
+                if(! (self instanceof HoldsInt)) return Optional.empty();
                 HoldsInt hi = (HoldsInt) self;
-                return new Some(theCase.apply(hi.getValue()));
+                return Optional.of(theCase.apply(hi.getValue()));
             };
         }
 
-        public static <B> Function1<SimpleCase, Option<B>> caseHoldsString(Function1<String, B> theCase) {
+        public static <B> Function1<SimpleCase, Optional<B>> caseHoldsString(Function1<String, B> theCase) {
             return (self) -> {
-                if(! (self instanceof HoldsString)) return new None();
+                if(! (self instanceof HoldsString)) return Optional.empty();
                 HoldsString hs = (HoldsString) self;
-                return new Some(theCase.apply(hs.getData()));
+                return Optional.of(theCase.apply(hs.getData()));
             };
         }
     }

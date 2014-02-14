@@ -4,6 +4,7 @@ import java.util.Comparator;
 
 /**
  * Created by Andrei Barsan on 12.02.2014, based on code by Prof. Dr. Sven Eric Panitz.
+ * This is just a demo. Don't use this for testing. Use the tests for that!
  */
 public class TreeDemo {
     public static void main(String[] args) {
