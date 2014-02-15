@@ -7,6 +7,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
+import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +69,38 @@ public class ADT {
         }
 
         return -1;
+    }
+
+
+
+    /**
+     * Helper that returns the full type parameter specification of a given type parameter, as a string (includes
+     * type boundaries).
+     */
+    public static String getFullTypeParamName(TypeParameterElement e) {
+        StringBuilder sb = new StringBuilder();
+        String mainType = e.asType().toString();
+        sb.append(mainType);
+
+        List<? extends TypeMirror> bounds = e.getBounds();
+        if(bounds.size() == 0) {
+            return sb.toString();
+        }
+        else {
+            sb.append(" extends ");
+            boolean first = true;
+            for(TypeMirror tm : bounds) {
+                if(first) {
+                    first = false;
+                } else {
+                    sb.append(" & ");
+                }
+
+                sb.append(tm.toString());
+            }
+
+            return sb.toString();
+        }
     }
 
     public ADT(TypeElement typeElement, ProcessingEnvironment env) {
@@ -156,32 +189,6 @@ public class ADT {
         }
     }
 
-    private static String getFullTypeParamName(TypeParameterElement e) {
-        StringBuilder sb = new StringBuilder();
-        String mainType = e.asType().toString();
-        sb.append(mainType);
-
-        List<? extends TypeMirror> bounds = e.getBounds();
-        if(bounds.size() == 0) {
-            return sb.toString();
-        }
-        else {
-            sb.append(" extends ");
-            boolean first = true;
-            for(TypeMirror tm : bounds) {
-                if(first) {
-                    first = false;
-                } else {
-                    sb.append(" & ");
-                }
-
-                sb.append(tm.toString());
-            }
-
-            return sb.toString();
-        }
-    }
-
     String getParamList(boolean full) {
         String pars = commaSeparatedTypeParams(full);
         return pars.length() == 0 ? "" : "<" + pars + ">";
@@ -189,6 +196,13 @@ public class ADT {
 
     String getPackageDef() {
         return thePackage.length() == 0 ? "" : "package " + thePackage + ";\n\n";
+    }
+
+    /**
+     * Returns the exact name of this class' enclosing element (it's equal to thePackage if the class isn't nested).
+     */
+    String getEnclosingName() {
+        return thePackage + (enclosingTypes.length() > 0 ? "." : "") + enclosingTypes;
     }
 
     public void addCtor(String name, List<? extends VariableElement> parameters) {
@@ -208,6 +222,10 @@ public class ADT {
             for (Constructor c:constructors) {
                 c.generateClass(this, filer);
             }
+
+            env.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generating case branch static methods...");
+            generateCaseBranches();
+
             env.getMessager().printMessage(Diagnostic.Kind.NOTE, "Done generating!");
         } catch (Exception e) {
             Dbg.printException(env, e);
@@ -236,7 +254,7 @@ public class ADT {
         out.close();
     }
 
-    private void generateClass() throws Exception {
+    private void generateClass() throws IOException {
         final String fullName = getFullName();
         String sourceFileName = ((thePackage.length() == 0) ? "" : thePackage + ".") + simpleName + "Adt";
         Writer out = filer.createSourceFile(sourceFileName).openWriter();
@@ -255,5 +273,25 @@ public class ADT {
         out.close();
     }
 
+    private void generateCaseBranches() throws IOException {
+        final String fullName = getFullName();
+        String sourceFileName = ((thePackage.length() == 0) ? "" : thePackage + ".") + simpleName + "Cases";
+        Writer out = filer.createSourceFile(sourceFileName).openWriter();
+
+        out.write(getPackageDef());
+        out.write("\nimport " + getEnclosingName() + ".*;\n");
+        out.write("\nimport de.hsrm.cs.jscala.helpers.*;\n");
+        out.write("\nimport java.util.Optional;\n\n");
+        out.write("public class " + getSimpleName() + "Cases { \n");
+
+        for(Constructor c : constructors) {
+            String method = c.genStaticCaseMethod(typeElement);
+            out.write(method);
+            out.write("\n");
+        }
+
+        out.write("} ");
+        out.close();
+    }
 }
 

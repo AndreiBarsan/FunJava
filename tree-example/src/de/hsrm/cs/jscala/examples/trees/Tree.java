@@ -11,6 +11,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
+// Auto-imports caseEmpty, caseBranch etc. after they get generated
+import static de.hsrm.cs.jscala.examples.trees.TreeCases.*;
+
 @Data public class Tree<T extends Comparable<T>> implements Matching<Tree<T>> {
 
     @Ctor void Branch(Tree<T> left, T data, Tree<T> right) { }
@@ -88,18 +91,6 @@ import java.util.Optional;
     }
 
     /*
-    This is how a "template" might look, in case we want to dynamically generate such a method:
-
-    public static <A, B> Function1<$TYPE$, Optional<B>> case$CURRENT_PATTERN$(Function$CURRENT_PATTERN_MEMBER_COUNT$<$CURRENT_PATTERN_MEMBER_TYPES$> theCase) {
-    return (self) -> {
-        if(! (self instanceof $CURRENT_PATTERN$) ) return Optional.empty();
-        else {
-            $CURRENT_PATTERN$$CURRENT_PATTERN_TYPE_PARAMS$ matchedBranch = ($CURRENT_PATTERN$$CURRENT_PATTERN_TYPE_PARAMS$) self;
-            return Optional.of(theCase.apply( $CURRENT_PATTERN_MEMBER_GETTERS$ );
-            }
-        }
-    }
-     */
     public static <A extends Comparable<A>, B> Function1<Tree<A>, Optional<B>> caseBranch(Function3<Tree<A>, A, Tree<A>, B> theCase) {
         return (self) -> {
             if (!(self instanceof Branch)) return Optional.empty();
@@ -115,6 +106,7 @@ import java.util.Optional;
             return Optional.of(theCase.apply());
         };
     }
+    */
 
     public static <A extends Comparable<A>, B> Function1<Tree<A>, Optional<B>> otherwise(Function1<Tree<A>, B> theCase){
         return (self)-> Optional.of(theCase.apply(self));

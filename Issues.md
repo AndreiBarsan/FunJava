@@ -14,3 +14,7 @@ Future ideas:
     already implements toString, and if it does, (maybe) don't output anything);
     - http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/tutorial/tutorial2.html use this to generate the caseXXX methods
     dynamically, by editing class files (after javac compiles everything)
+
+Javassist
+=========
+    - design a custom post-build step that runs a program based on javassist which generates the proper code; HOWEVER, this would not work since doing so would require the initial build to succeed; which it won't do, since we're referring to stuff that would need to be generated first;

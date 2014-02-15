@@ -1,6 +1,10 @@
 package de.hsrm.cs.jscala;
 
+import com.sun.org.apache.xpath.internal.operations.Variable;
+
 import javax.annotation.processing.Filer;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
 import java.io.IOException;
 import java.io.Writer;
@@ -39,6 +43,77 @@ class Constructor {
         mkIteratorMethod(out);
         out.write("}\n");
         out.close();
+    }
+
+    public static String getShortTypeParamComma(TypeElement te) {
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for(TypeParameterElement tpe : te.getTypeParameters()) {
+            if(first) {
+                first = false;
+            } else {
+                sb.append(", ");
+            }
+            sb.append(tpe.toString());
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * @param te The type of the parent object we're generating the case classes for
+     * @return
+     */
+    public String genStaticCaseMethod(TypeElement te) {
+        List<? extends TypeParameterElement> typeParams = te.getTypeParameters();
+        StringBuilder sb = new StringBuilder();
+        String typeParamsShort = getShortTypeParamComma(te);
+        String wrappedTypeParamsShort = typeParamsShort.length() == 0 ? "" : "<" + typeParamsShort + ">";
+
+        sb.append("\npublic static ");
+        sb.append("<");
+        for(TypeParameterElement tpe : typeParams) {
+            // Full type param names here
+            sb.append(ADT.getFullTypeParamName(tpe));
+            sb.append(", ");
+        }
+        sb.append("B>");
+
+        sb.append("Function1<" + te.getSimpleName() + wrappedTypeParamsShort + ", Optional<B>> ");
+        sb.append("case" + this.name + "(Function" + params.size());
+        if(params.size() > 0) {
+            sb.append("<");
+            for(VariableElement param : this.params) {
+                sb.append(param.asType().toString());
+                sb.append(", ");
+            }
+            sb.append("B>");
+        }
+        else {
+            sb.append("<B>");
+        }
+        sb.append(" theCase) {\n");
+        sb.append("\treturn (self) -> {\n");
+        sb.append("\t\tif(! (self instanceof " + name + ")) return Optional.empty();\n");
+        sb.append("\t\t" + name + wrappedTypeParamsShort + " matchedBranch = (" + name + wrappedTypeParamsShort + ") self;\n");
+        StringBuilder getters = new StringBuilder();
+        boolean fg = true;
+        for(VariableElement ve : this.params) {
+            if(fg) {
+                fg = false;
+            }
+            else {
+                getters.append(", ");
+            }
+
+            String sn = ve.getSimpleName().toString();
+            getters.append("matchedBranch.get" + Character.toUpperCase(sn.charAt(0)) + sn.substring(1) + "()");
+        }
+        sb.append("\t\treturn Optional.of(theCase.apply(" + getters + "));\n");
+        sb.append("\t};\n");
+        sb.append("};\n");
+
+        return sb.toString();
     }
 
     private void mkFields(Writer out) throws IOException {
