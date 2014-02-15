@@ -68,4 +68,22 @@ public class NoTypeParamTest {
                 caseHoldsString(val -> val)
         );
     }
+
+    @Test
+    public void otherwiseTest() {
+        SimpleCase sc = new HoldsInt(0);
+        assertEquals((Integer) 2, sc.match(
+                caseHoldsString(val -> 1),
+                otherwise(val -> 2)
+        ));
+    }
+
+    @Test
+    public void otherwiseVoidTest() {
+        SimpleCase sc = new HoldsInt(42);
+        sc.match(
+            caseHoldsStringV(val -> fail("Int holder matched String case.")),
+            otherwiseV(val -> { })
+        );
+    }
 }

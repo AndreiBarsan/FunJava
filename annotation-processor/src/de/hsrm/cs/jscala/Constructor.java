@@ -3,6 +3,7 @@ package de.hsrm.cs.jscala;
 import com.sun.org.apache.xpath.internal.operations.Variable;
 
 import javax.annotation.processing.Filer;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
@@ -45,22 +46,70 @@ class Constructor {
         out.close();
     }
 
-    /*
-    public static String getShortTypeParamComma(TypeElement te) {
+    public static String genCaseHeader(String typeParamsShort, String typeParamsLong, String parentName, String caseName, List<? extends Element> params) {
+        return genCaseHeader(typeParamsShort, typeParamsLong, parentName, caseName, params, true);
+    }
+
+    // TODO: outta here
+    public static String genCaseHeader(String typeParamsShort, String typeParamsLong, String parentName, String caseName, List<? extends Element> params, boolean includeB) {
+        String wrappedTypeParamsShort = typeParamsShort.length() == 0 ? "" : "<" + typeParamsShort + ">";
+        String wrappedTypeParamsLong = typeParamsLong.length() == 0 ? "" : "<" + typeParamsLong + ">";
         StringBuilder sb = new StringBuilder();
-        boolean first = true;
-        for(TypeParameterElement tpe : te.getTypeParameters()) {
-            if(first) {
-                first = false;
-            } else {
-                sb.append(", ");
-            }
-            sb.append(tpe.toString());
+        if(includeB) {
+            sb.append("public static" + "<" + typeParamsLong + (typeParamsLong.length() > 0 ? ", " : "") + "B> ");
+            sb.append("Function1<" + parentName + wrappedTypeParamsShort + ", Optional<B>> " + caseName + "(Function" + params.size());
+        }
+        else {
+            sb.append("public static" + wrappedTypeParamsLong + " ");
+            sb.append("Function1<" + parentName + wrappedTypeParamsShort + ", Optional<Nothing>> " + caseName + "(Consumer" + params.size());
         }
 
+        if(params.size() > 0) {
+            sb.append("<");
+            boolean first = true;
+            for(Element param : params) {
+                if(first) {
+                    first = false;
+                }
+                else {
+                    sb.append(", ");
+                }
+                sb.append(param.asType().toString());
+            }
+
+            if(includeB) {
+                sb.append(", B>");
+            }
+            else {
+                sb.append(">");
+            }
+        }
+        else {
+            if(includeB) {
+                sb.append("<B>");
+            }
+        }
+        sb.append(" theCase) {\n");
         return sb.toString();
     }
-    */
+
+    public static String genGetters(List<? extends VariableElement> params, String varName) {
+        StringBuilder getters = new StringBuilder();
+        boolean fg = true;
+        for(VariableElement ve : params) {
+            if(fg) {
+                fg = false;
+            }
+            else {
+                getters.append(", ");
+            }
+
+            String sn = ve.getSimpleName().toString();
+            getters.append(varName + ".get" + Character.toUpperCase(sn.charAt(0)) + sn.substring(1) + "()");
+        }
+
+        return getters.toString();
+    }
 
     /**
      * @param adt The ADT we're generating the case classes for
@@ -71,40 +120,32 @@ class Constructor {
         String typeParamsShort = adt.commaSeparatedTypeParams(false);
         String typeParamsLong = adt.commaSeparatedTypeParams(true);
         String wrappedTypeParamsShort = typeParamsShort.length() == 0 ? "" : "<" + typeParamsShort + ">";
-
-        sb.append("\npublic static ");
-        sb.append("<" + typeParamsLong + (typeParamsLong.length() > 0 ? ", " : "") + "B>");
-        sb.append("Function1<" + adt.getSimpleName() + wrappedTypeParamsShort + ", Optional<B>> ");
-        sb.append("case" + this.name + "(Function" + params.size());
-        if(params.size() > 0) {
-            sb.append("<");
-            for(VariableElement param : this.params) {
-                sb.append(param.asType().toString());
-                sb.append(", ");
-            }
-            sb.append("B>");
-        }
-        else {
-            sb.append("<B>");
-        }
-        sb.append(" theCase) {\n");
+        sb.append(genCaseHeader(typeParamsShort, typeParamsLong, adt.getSimpleName(), "case" + this.name, this.params));
         sb.append("\treturn (self) -> {\n");
         sb.append("\t\tif(! (self instanceof " + name + ")) return Optional.empty();\n");
         sb.append("\t\t" + name + wrappedTypeParamsShort + " matchedBranch = (" + name + wrappedTypeParamsShort + ") self;\n");
-        StringBuilder getters = new StringBuilder();
-        boolean fg = true;
-        for(VariableElement ve : this.params) {
-            if(fg) {
-                fg = false;
-            }
-            else {
-                getters.append(", ");
-            }
+        sb.append("\t\treturn Optional.of(theCase.apply(" + genGetters(this.params, "matchedBranch") + "));\n");
+        sb.append("\t};\n");
+        sb.append("}\n");
 
-            String sn = ve.getSimpleName().toString();
-            getters.append("matchedBranch.get" + Character.toUpperCase(sn.charAt(0)) + sn.substring(1) + "()");
-        }
-        sb.append("\t\treturn Optional.of(theCase.apply(" + getters + "));\n");
+        return sb.toString();
+    }
+
+    /**
+     * Generates overloaded methods to allow void cases to be matched (think caseSomething(el -> println(el)))
+     * @param adt The ADT we're generating the case classes for
+     * @return
+     */
+    public String genStaticCaseVoidMethod(ADT adt) {
+        StringBuilder sb = new StringBuilder();
+        String typeParamsShort = adt.commaSeparatedTypeParams(false);
+        String typeParamsLong = adt.commaSeparatedTypeParams(true);
+        String wrappedTypeParamsShort = typeParamsShort.length() == 0 ? "" : "<" + typeParamsShort + ">";
+        sb.append(genCaseHeader(typeParamsShort, typeParamsLong, adt.getSimpleName(), "case" + this.name + "V", this.params, false));
+        sb.append("\treturn (self) -> {\n");
+        sb.append("\t\tif(! (self instanceof " + name + ")) return Optional.empty();\n");
+        sb.append("\t\t" + name + wrappedTypeParamsShort + " matchedBranch = (" + name + wrappedTypeParamsShort + ") self;\n");
+        sb.append("\t\ttheCase.apply(" + genGetters(this.params, "matchedBranch") + "); return Optional.of(Nothing.VAL);\n");
         sb.append("\t};\n");
         sb.append("}\n");
 

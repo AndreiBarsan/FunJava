@@ -10,6 +10,7 @@ import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -285,20 +286,23 @@ public class ADT {
         out.write("public class " + getSimpleName() + "Cases { \n");
 
         for(Constructor c : constructors) {
-            String method = c.genStaticCaseMethod(this);
-            out.write(method);
-            out.write("\n");
+            out.write(c.genStaticCaseMethod(this) + "\n");
+            out.write(c.genStaticCaseVoidMethod(this) + "\n");
         }
 
         // Generate the "otherwise" branch code (which matches anything)
         String typeParamsLong = commaSeparatedTypeParams(true);
         String typeParamsShort = commaSeparatedTypeParams(false);
         String wrappedTypeParamsShort = typeParamsShort.length() == 0 ? "" : "<" + typeParamsShort + ">";
-        out.write("\n\npublic static ");
-        out.write("<" + typeParamsLong + (typeParamsLong.length() > 0 ? ", " : "") + "B> ");
-        out.write("Function1<" + getSimpleName() + wrappedTypeParamsShort + ", Optional<B>> otherwise(Function1<" + getSimpleName() + wrappedTypeParamsShort + ", B> theCase) {\n");
+        out.write(Constructor.genCaseHeader(typeParamsShort, typeParamsLong, getSimpleName(), "otherwise", Arrays.asList(typeElement)));
         out.write("\treturn self -> Optional.of(theCase.apply(self));\n");
         out.write("}\n");
+
+        // Generate the "otherwiseV" (void) branch code (which matches anything but doesn't return anything either)
+        out.write(Constructor.genCaseHeader(typeParamsShort, typeParamsLong, getSimpleName(), "otherwiseV", Arrays.asList(typeElement), false));
+        out.write("\treturn self -> { theCase.apply(self); return Optional.of(Nothing.VAL); };\n");
+        out.write("}\n");
+
         out.write("}");
         out.close();
     }
