@@ -11,6 +11,9 @@ import org.junit.runners.JUnit4;
 
 import java.util.Optional;
 
+// Required for the branches!
+import static de.hsrm.cs.jscala.examples.trees.tests.SimpleCaseCases.*;
+
 import static junit.framework.Assert.*;
 
 /**
@@ -23,29 +26,38 @@ public class NoTypeParamTest {
     static class SimpleCase implements Matching<SimpleCase> {
         @Ctor void HoldsInt(Integer value) { };
         @Ctor void HoldsString(String data) { };
-
-        public static <B> Function1<SimpleCase, Optional<B>> caseHoldsInt(Function1<Integer, B> theCase) {
-            return (self) -> {
-                if(! (self instanceof HoldsInt)) return Optional.empty();
-                HoldsInt hi = (HoldsInt) self;
-                return Optional.of(theCase.apply(hi.getValue()));
-            };
-        }
-
-        public static <B> Function1<SimpleCase, Optional<B>> caseHoldsString(Function1<String, B> theCase) {
-            return (self) -> {
-                if(! (self instanceof HoldsString)) return Optional.empty();
-                HoldsString hs = (HoldsString) self;
-                return Optional.of(theCase.apply(hs.getData()));
-            };
-        }
     }
 
     @Test
     public void basicMatchTest() {
         SimpleCase sc = new HoldsInt(42);
         assertEquals((Integer)42, sc.match(
-                SimpleCase.caseHoldsInt(val -> val)
+            caseHoldsInt(val -> val)
+        ));
+    }
+
+    @Test
+    public void basicFallthroughTest() {
+        String quote = "Now I am become Death, the destroyer of worlds.";
+        SimpleCase sc = new HoldsString(quote);
+        assertEquals(quote, sc.match(
+            caseHoldsInt(val -> val),
+            caseHoldsString(val -> val)
+        ));
+    }
+
+    @Test
+    public void trivialComputationInCaseTest() {
+        SimpleCase sc = new HoldsInt(100);
+        assertEquals(50, sc.match(
+           caseHoldsInt(val -> {
+               int vaux = val;
+               for(int i = 0; i < 5; i++) {
+                   vaux -= 10;
+               }
+               return vaux;
+           }),
+           caseHoldsString(val -> "Nope.")
         ));
     }
       
@@ -53,7 +65,7 @@ public class NoTypeParamTest {
     public void patternMatchFailTest() {
         SimpleCase sc = new HoldsInt(42);
         sc.match(
-                SimpleCase.caseHoldsString(val -> val)
+                caseHoldsString(val -> val)
         );
     }
 }
