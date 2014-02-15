@@ -89,26 +89,4 @@ import static de.hsrm.cs.jscala.examples.trees.TreeCases.*;
             otherwise ((x)      ->  result)
         );
     }
-
-    /*
-    public static <A extends Comparable<A>, B> Function1<Tree<A>, Optional<B>> caseBranch(Function3<Tree<A>, A, Tree<A>, B> theCase) {
-        return (self) -> {
-            if (!(self instanceof Branch)) return Optional.empty();
-            Branch<A> branch = (Branch<A>) self;
-            return Optional.of(theCase.apply(branch.getLeft(), branch.getData(), branch.getRight()));
-        };
-    }
-
-    public static <A extends Comparable<A>, B> Function1<Tree<A>, Optional<B>> caseEmpty(Function0<B> theCase) {
-        return (self) -> {
-            if (!(self instanceof Empty)) return Optional.empty();
-            Empty<A> empty = (Empty<A>) self;
-            return Optional.of(theCase.apply());
-        };
-    }
-    */
-
-    public static <A extends Comparable<A>, B> Function1<Tree<A>, Optional<B>> otherwise(Function1<Tree<A>, B> theCase){
-        return (self)-> Optional.of(theCase.apply(self));
-    }
 }

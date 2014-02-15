@@ -45,6 +45,7 @@ class Constructor {
         out.close();
     }
 
+    /*
     public static String getShortTypeParamComma(TypeElement te) {
         StringBuilder sb = new StringBuilder();
         boolean first = true;
@@ -59,27 +60,21 @@ class Constructor {
 
         return sb.toString();
     }
+    */
 
     /**
-     * @param te The type of the parent object we're generating the case classes for
+     * @param adt The ADT we're generating the case classes for
      * @return
      */
-    public String genStaticCaseMethod(TypeElement te) {
-        List<? extends TypeParameterElement> typeParams = te.getTypeParameters();
+    public String genStaticCaseMethod(ADT adt) {
         StringBuilder sb = new StringBuilder();
-        String typeParamsShort = getShortTypeParamComma(te);
+        String typeParamsShort = adt.commaSeparatedTypeParams(false);
+        String typeParamsLong = adt.commaSeparatedTypeParams(true);
         String wrappedTypeParamsShort = typeParamsShort.length() == 0 ? "" : "<" + typeParamsShort + ">";
 
         sb.append("\npublic static ");
-        sb.append("<");
-        for(TypeParameterElement tpe : typeParams) {
-            // Full type param names here
-            sb.append(ADT.getFullTypeParamName(tpe));
-            sb.append(", ");
-        }
-        sb.append("B>");
-
-        sb.append("Function1<" + te.getSimpleName() + wrappedTypeParamsShort + ", Optional<B>> ");
+        sb.append("<" + typeParamsLong + (typeParamsLong.length() > 0 ? ", " : "") + "B>");
+        sb.append("Function1<" + adt.getSimpleName() + wrappedTypeParamsShort + ", Optional<B>> ");
         sb.append("case" + this.name + "(Function" + params.size());
         if(params.size() > 0) {
             sb.append("<");
@@ -111,7 +106,7 @@ class Constructor {
         }
         sb.append("\t\treturn Optional.of(theCase.apply(" + getters + "));\n");
         sb.append("\t};\n");
-        sb.append("};\n");
+        sb.append("}\n");
 
         return sb.toString();
     }

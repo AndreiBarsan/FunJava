@@ -14,6 +14,8 @@ Future ideas:
     already implements toString, and if it does, (maybe) don't output anything);
     - http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/tutorial/tutorial2.html use this to generate the caseXXX methods
     dynamically, by editing class files (after javac compiles everything)
+    - captureCaseXXX holds both the reference to the matched thing, as well as the individual fields
+    - captureXXX (maybe) could ONLY have a reference to what the case class that matched
 
 Javassist
 =========

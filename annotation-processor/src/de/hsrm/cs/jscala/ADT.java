@@ -285,12 +285,21 @@ public class ADT {
         out.write("public class " + getSimpleName() + "Cases { \n");
 
         for(Constructor c : constructors) {
-            String method = c.genStaticCaseMethod(typeElement);
+            String method = c.genStaticCaseMethod(this);
             out.write(method);
             out.write("\n");
         }
 
-        out.write("} ");
+        // Generate the "otherwise" branch code (which matches anything)
+        String typeParamsLong = commaSeparatedTypeParams(true);
+        String typeParamsShort = commaSeparatedTypeParams(false);
+        String wrappedTypeParamsShort = typeParamsShort.length() == 0 ? "" : "<" + typeParamsShort + ">";
+        out.write("\n\npublic static ");
+        out.write("<" + typeParamsLong + (typeParamsLong.length() > 0 ? ", " : "") + "B> ");
+        out.write("Function1<" + getSimpleName() + wrappedTypeParamsShort + ", Optional<B>> otherwise(Function1<" + getSimpleName() + wrappedTypeParamsShort + ", B> theCase) {\n");
+        out.write("\treturn self -> Optional.of(theCase.apply(self));\n");
+        out.write("}\n");
+        out.write("}");
         out.close();
     }
 }
