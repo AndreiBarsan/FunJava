@@ -2,6 +2,13 @@
 <!-- In eclipse, this should be added as a custom Ant builder -->
 <project name="annotation-processor.makejar" default="makejar" basedir=".">
 	<target name="makejar" description="Create a jar for the annotation-processor">
-		<jar jarfile="lib/annotation-processor.jar" includes="*.class" basedir="bin/"/>
+		<jar jarfile="lib/annotation-processor.jar" basedir="bin/">
+			<!-- We want to include everything in bin/ ESPECIALLY META-INF/services/javac...Processor -->
+			<fileset dir="../annotation-processor/bin/" />
+			<!-- We also need to make sure we include all dependencies of this project, since otherwise we might find
+				ourselves facing errors where e.g. the annotation classes cannot be found (Data, Ctor) and the build process crashes -->
+			
+			<fileset dir="../annotations/bin/" />
+		</jar>
 	</target>
 </project>

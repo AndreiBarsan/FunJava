@@ -37,6 +37,9 @@ local.properties
 .settings/
 .loadpath
 
+# Exclude generated files
+*/generated/
+
 # External tool builders
 .externalToolBuilders/
 

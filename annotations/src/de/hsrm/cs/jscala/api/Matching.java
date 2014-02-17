@@ -13,7 +13,8 @@ public interface Matching<A> {
      * Simply iterates through the given cases, applying the first pattern that matches. If none is found, a
      * PatternMatchException is thrown.
      */
-    default <B> B match(Function1<A, Optional<B>>... cases) {
+	@SuppressWarnings("unchecked")
+	default <B> B match(Function1<A, Optional<B>>... cases) {
         for (Function1<A, Optional<B>> theCase : cases) {
             Optional<B> result = theCase.apply((A) this);
             if (result.isPresent()) return result.get();

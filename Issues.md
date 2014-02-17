@@ -24,7 +24,8 @@ Javassist
 
 Eclipse-support
 ===============
-    - use Ant to generate .jar, add .jar as dependency for
+    - done integrating;
+    - develop plugin to allow simplified access to these features
 
 cglib
 =====

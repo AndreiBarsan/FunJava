@@ -1,21 +1,19 @@
 package de.hsrm.cs.jscala.examples.trees;
 
-import de.hsrm.cs.jscala.PatternMatchException;
 import de.hsrm.cs.jscala.annotations.Ctor;
 import de.hsrm.cs.jscala.annotations.Data;
 import de.hsrm.cs.jscala.api.Matching;
 import de.hsrm.cs.jscala.helpers.*;
 
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 
 // Auto-imports caseEmpty, caseBranch etc. after they get generated
 import static de.hsrm.cs.jscala.examples.trees.TreeCases.*;
 
 @Data public class Tree<T extends Comparable<T>> implements Matching<Tree<T>> {
 
+	@Ctor void Ch() { }
     @Ctor void Branch(Tree<T> left, T data, Tree<T> right) { }
     @Ctor void Empty() { }
 

@@ -8,13 +8,12 @@ import de.hsrm.cs.jscala.helpers.Function1;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
 import java.util.Optional;
 
 // Required for the branches!
 import static de.hsrm.cs.jscala.examples.trees.tests.SimpleCaseCases.*;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 /**
  * Created by Andrei Barsan on 14.02.2014, based on code by Prof. Dr. Sven Eric Panitz.
