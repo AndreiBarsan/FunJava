@@ -9,5 +9,6 @@
 			<attribute name="optional" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/annotation-processor"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

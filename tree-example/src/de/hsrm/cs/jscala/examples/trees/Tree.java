@@ -13,7 +13,6 @@ import static de.hsrm.cs.jscala.examples.trees.TreeCases.*;
 
 @Data public class Tree<T extends Comparable<T>> implements Matching<Tree<T>> {
 
-	@Ctor void Ch() { }
     @Ctor void Branch(Tree<T> left, T data, Tree<T> right) { }
     @Ctor void Empty() { }
 
@@ -26,13 +25,13 @@ import static de.hsrm.cs.jscala.examples.trees.TreeCases.*;
 
     public Tree<T> add(T element) {
         return match(
-            caseEmpty (()               -> new Branch(new Empty(), element, new Empty())),
+            caseEmpty (()               -> new Branch<T>(new Empty<T>(), element, new Empty<T>())),
             caseBranch((l, current, r)  -> {
                 if(element.compareTo(current) < 0) {
-                    return new Branch(l.add(element), current, r);
+                    return new Branch<T>(l.add(element), current, r);
                 }
                 else {
-                    return new Branch(l, current, r.add(element));
+                    return new Branch<T>(l, current, r.add(element));
                 }
             })
 
@@ -87,23 +86,4 @@ import static de.hsrm.cs.jscala.examples.trees.TreeCases.*;
             otherwise ((x)      ->  result)
         );
     }
-
-    /*
-    public static <A extends Comparable<A>, B> Function1<Tree<A>, Optional<B>> caseBranch(Function3<Tree<A>, A, Tree<A>, B> theCase) {
-        return (self) -> {
-            if (!(self instanceof Branch)) return Optional.empty();
-            Branch<A> branch = (Branch<A>) self;
-            return Optional.of(theCase.apply(branch.getLeft(), branch.getData(), branch.getRight()));
-        };
-    }
-
-    public static <A extends Comparable<A>, B> Function1<Tree<A>, Optional<B>> caseEmpty(Function0<B> theCase) {
-        return (self) -> {
-            if (!(self instanceof Empty)) return Optional.empty();
-            Empty<A> empty = (Empty<A>) self;
-            return Optional.of(theCase.apply());
-        };
-    }
-    */
-
 }

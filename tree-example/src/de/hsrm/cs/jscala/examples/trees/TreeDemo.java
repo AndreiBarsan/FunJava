@@ -1,15 +1,15 @@
 package de.hsrm.cs.jscala.examples.trees;
 
-import java.util.Comparator;
-
 /**
  * Created by Andrei Barsan on 12.02.2014, based on code by Prof. Dr. Sven Eric Panitz.
  * This is just a demo. Don't use this for testing. Use the tests for that!
  */
 public class TreeDemo {
+    @SuppressWarnings("rawtypes")
     public static void main(String[] args) {
-        Empty e = new Empty();
-        Tree<Integer> t = new Branch<Integer>(
+        Empty<Integer> e = new Empty<>();
+        
+		Tree<Integer> t = new Branch<Integer>(
                     new Branch(
                             new Branch(e, 16, new Branch(e, 17, e)),
                             19,

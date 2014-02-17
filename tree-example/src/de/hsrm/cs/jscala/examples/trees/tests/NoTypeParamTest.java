@@ -4,11 +4,10 @@ import de.hsrm.cs.jscala.PatternMatchException;
 import de.hsrm.cs.jscala.annotations.Ctor;
 import de.hsrm.cs.jscala.annotations.Data;
 import de.hsrm.cs.jscala.api.Matching;
-import de.hsrm.cs.jscala.helpers.Function1;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import java.util.Optional;
 
 // Required for the branches!
 import static de.hsrm.cs.jscala.examples.trees.tests.SimpleCaseCases.*;

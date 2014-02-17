@@ -2,7 +2,9 @@
 <!-- In eclipse, this should be added as a custom Ant builder -->
 <project name="annotation-processor.makejar" default="makejar" basedir=".">
 	<target name="makejar" description="Create a jar for the annotation-processor">
-		<jar jarfile="lib/annotation-processor.jar" basedir="bin/">
+		<!-- We need includes=".", since if it's ommitted, you can have duplicate files in your jar  -->
+		<!-- If you have duplicate files in your jar, you're going to have a bad time. -->
+		<jar jarfile="lib/annotation-processor.jar" basedir="bin/" includes="." duplicate="fail">
 			<!-- We want to include everything in bin/ ESPECIALLY META-INF/services/javac...Processor -->
 			<fileset dir="../annotation-processor/bin/" />
 			<!-- We also need to make sure we include all dependencies of this project, since otherwise we might find

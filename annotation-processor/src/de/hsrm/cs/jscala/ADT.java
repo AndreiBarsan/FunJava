@@ -246,7 +246,7 @@ public class ADT {
         for (Constructor c:constructors)
             out.write("  "+c.mkVisitMethod(this)+"\n");
 
-        out.write("  public result visit("+getFullName()+" xs){");
+        out.write("  public result visit("+ getFullName() + getParamList(false) + " xs){");
         out.write("\n    throw new RuntimeException(");
         out.write("\"unmatched pattern: \"+xs.getClass());\n");
         out.write("  }");
@@ -260,22 +260,20 @@ public class ADT {
         String sourceFileName = ((thePackage.length() == 0) ? "" : thePackage + ".") + simpleName + "Adt";
         Writer out = filer.createSourceFile(sourceFileName).openWriter();
 
-        out.write( getPackageDef());
+        out.write(getPackageDef());
         out.write("public abstract class ");
         out.write(getSimpleName() + "Adt" + getParamList(true));
-        out.write(" extends "+fullName+"\n");
+        out.write(" extends "+ fullName + getParamList(false));
         out.write(" implements Iterable<Object>{\n");
-
         out.write("  abstract public <b_> b_ welcome("
                 + simpleName + "Visitor<" + commaSeparatedTypeParams(false)
-                +(commaSeparatedTypeParams(false).length()==0?"":",")
+                + (commaSeparatedTypeParams(false).length() == 0 ? "" : "," )
                 +"b_> visitor);\n");
         out.write("}");
         out.close();
     }
 
     private void generateCaseBranches() throws IOException {
-        final String fullName = getFullName();
         String sourceFileName = ((thePackage.length() == 0) ? "" : thePackage + ".") + simpleName + "Cases";
         Writer out = filer.createSourceFile(sourceFileName).openWriter();
 
@@ -293,7 +291,7 @@ public class ADT {
         // Generate the "otherwise" branch code (which matches anything)
         String typeParamsLong = commaSeparatedTypeParams(true);
         String typeParamsShort = commaSeparatedTypeParams(false);
-        String wrappedTypeParamsShort = typeParamsShort.length() == 0 ? "" : "<" + typeParamsShort + ">";
+        // String wrappedTypeParamsShort = typeParamsShort.length() == 0 ? "" : "<" + typeParamsShort + ">";
         out.write(Constructor.genCaseHeader(typeParamsShort, typeParamsLong, getSimpleName(), "otherwise", Arrays.asList(typeElement)));
         out.write("\treturn self -> Optional.of(theCase.apply(self));\n");
         out.write("}\n");

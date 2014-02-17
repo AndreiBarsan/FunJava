@@ -1,11 +1,7 @@
 package de.hsrm.cs.jscala;
 
-import com.sun.org.apache.xpath.internal.operations.Variable;
-
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
 import java.io.IOException;
 import java.io.Writer;
@@ -38,9 +34,9 @@ class Constructor {
         mkConstructor(out);
         mkGetterMethods(out);
         mkSetterMethods(out);
-        mkWelcomeMethod(theType, out);
+        mkWelcomeMethod(out, theType);
         mkToStringMethod(out);
-        mkEqualsMethod(out);
+        mkEqualsMethod(out, theType);
         mkIteratorMethod(out);
         out.write("}\n");
         out.close();
@@ -205,8 +201,7 @@ class Constructor {
         }
     }
 
-    private void mkWelcomeMethod(ADT theType, Writer out)
-            throws IOException {
+    private void mkWelcomeMethod(Writer out, ADT theType) throws IOException {
         out.write("  public <_b> _b welcome("
                 + theType.simpleName + "Visitor<" + theType.commaSeparatedTypeParams(false)
                 + (theType.commaSeparatedTypeParams(false).length() == 0 ? "" : ",")
@@ -227,11 +222,11 @@ class Constructor {
         out.write("+\")\";\n  }\n");
     }
 
-    private void mkEqualsMethod(Writer out) throws IOException {
+    private void mkEqualsMethod(Writer out, ADT adt) throws IOException {
         out.write("  public boolean equals(Object other){\n");
-        out.write("    if (!(other instanceof " + name + ")) ");
+        out.write("    if (!(other instanceof " + name + adt.getParamList(false) + ")) ");
         out.write("return false;\n");
-        out.write("    final " + name + " o= (" + name + ") other;\n");
+        out.write("    final " + name + adt.getParamList(false) + " o = (" + name + adt.getParamList(false) + ") other;\n");
         out.write("    return true  ");
         for (VariableElement p : params) {
             out.write("&& " + p.getSimpleName()
@@ -253,6 +248,6 @@ class Constructor {
 
     public String mkVisitMethod(ADT theType) {
         return "public abstract result visit("
-                + name + theType.getParamList(false) + " _);";
+                + name + theType.getParamList(false) + " _ignore);";
     }
 }

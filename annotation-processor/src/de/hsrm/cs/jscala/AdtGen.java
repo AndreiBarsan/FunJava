@@ -31,10 +31,11 @@ public class AdtGen extends AbstractProcessor {
 
         Set<? extends Element> els;
         try {
-        	m.printMessage(Diagnostic.Kind.WARNING, "About to touch Data.class for the first time!");
         	els = roundEnv.getElementsAnnotatedWith(Data.class);
         }
         catch(Exception e) {
+        	// This is meant to catch errors related to Data not being on the classpath
+        	// They happen when the annotation-processor jar doesn't get generated properly
         	Dbg.printException(processingEnv, e);
         	return true;
         }
