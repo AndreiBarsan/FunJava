@@ -16,7 +16,23 @@ Future ideas:
     dynamically, by editing class files (after javac compiles everything)
     - captureCaseXXX holds both the reference to the matched thing, as well as the individual fields
     - captureXXX (maybe) could ONLY have a reference to what the case class that matched
+    - when a reference to case class is caputred, custom @Case methods would be callable
 
 Javassist
 =========
     - design a custom post-build step that runs a program based on javassist which generates the proper code; HOWEVER, this would not work since doing so would require the initial build to succeed; which it won't do, since we're referring to stuff that would need to be generated first;
+
+Eclipse-support
+===============
+    - use Ant to generate .jar, add .jar as dependency for
+
+cglib
+=====
+    - interceptors for method and interface calls, 100% at runtime; not really what we'd like, since we also want
+    code autocomplete and code generation at compile time;
+
+Apache Velocity
+===============
+    - template engine that could help us generate code in a nicer fashion (no more out.write("blah...");
+    - it *can* be used to generate source code!
+    - will work on ite Tue/Wed (18-19.02)
