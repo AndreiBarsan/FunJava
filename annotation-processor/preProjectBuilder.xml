@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- In eclipse, this should be added as a custom Ant builder -->
+<project name="annotation-processor.preparestuff" default="preparestuff" basedir=".">
+	<target name="preparestuff" description="Disable factory path">
+		<!-- Eclipse + Ant need this -->
+		
+		<!-- Disable the reference to the jar in the tree-example project-->
+		<!--copy file="../tree-example/.factorypath" tofile="../tree-example/.factorypath-aux" overwrite="true" verbose="true"/-->
+		<!--xslt in="../tree-example/.factorypath-aux" out="../tree-example/.factorypath" style="disable-factorypath.xsl"/-->
+		
+		<!--replace 
+			file = "../tree-example/.settings/org.eclipse.jdt.core.prefs" 
+			token = "org.eclipse.jdt.core.compiler.processAnnotations=enabled"
+			value = "org.eclipse.jdt.core.compiler.processAnnotations=disabled"
+		/-->
+		
+		<!-- for debugging -->
+		<!--copy file="../tree-example/.factorypath" tofile="../tree-example/.factorypath-enabled-false" overwrite="true" verbose="true"/-->
+	</target>
+</project>

@@ -223,9 +223,11 @@ class Constructor {
     }
 
     private void mkEqualsMethod(Writer out, ADT adt) throws IOException {
+    	out.write("  @SuppressWarnings({ \"unchecked\", \"unused\" })\n");
         out.write("  public boolean equals(Object other){\n");
-        out.write("    if (!(other instanceof " + name + adt.getParamList(false) + ")) ");
-        out.write("return false;\n");
+        out.write("    if (!(other instanceof " + name + ")) return false;\n");
+        out.write("    if (null == other) return false;\n");
+        out.write("    if (this == other) return true;\n");
         out.write("    final " + name + adt.getParamList(false) + " o = (" + name + adt.getParamList(false) + ") other;\n");
         out.write("    return true  ");
         for (VariableElement p : params) {

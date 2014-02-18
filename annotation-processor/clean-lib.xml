@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- In eclipse, this should be added as a custom Ant builder -->
+<project name="annotation-processor.delete-lib" default="delete-lib" basedir=".">
+	<target name="delete-lib" description="Clean up">
+		<delete file="../annotation-processor/lib/annotation-processor.jar"/>
+	</target>
+</project>

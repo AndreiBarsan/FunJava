@@ -1,16 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- In eclipse, this should be added as a custom Ant builder -->
+<!-- In eclipse, this should be added as a custom Ant builder (AFTER preProjectBuilder.jar) -->
 <project name="annotation-processor.makejar" default="makejar" basedir=".">
 	<target name="makejar" description="Create a jar for the annotation-processor">
+		<delete file="../annotation-processor/lib/annotation-processor.jar" />
+		
 		<!-- We need includes=".", since if it's ommitted, you can have duplicate files in your jar  -->
 		<!-- If you have duplicate files in your jar, you're going to have a bad time. -->
-		<jar jarfile="lib/annotation-processor.jar" basedir="bin/" includes="." duplicate="fail">
+		<jar 	jarfile="../annotation-processor/lib/annotation-processor.jar" 
+				basedir="../annotation-processor/bin/" 
+				includes="." 
+				duplicate="fail">
+			
 			<!-- We want to include everything in bin/ ESPECIALLY META-INF/services/javac...Processor -->
 			<fileset dir="../annotation-processor/bin/" />
+			
 			<!-- We also need to make sure we include all dependencies of this project, since otherwise we might find
 				ourselves facing errors where e.g. the annotation classes cannot be found (Data, Ctor) and the build process crashes -->
-			
 			<fileset dir="../annotations/bin/" />
 		</jar>
+		
+		<!-- Restore the original .factorypath -->
+		<!--copy file="../tree-example/.factorypath-aux" tofile="../tree-example/.factorypath" overwrite="true" verbose="true"/-->
+		<!--delete file="../tree-example/.factorypath-aux" /-->
+		
+		<!-- reenable annot. proc -->
+		<!--replace 
+					file = "../tree-example/.settings/org.eclipse.jdt.core.prefs" 
+					token = "org.eclipse.jdt.core.compiler.processAnnotations=disabled"
+					value = "org.eclipse.jdt.core.compiler.processAnnotations=enabled"
+				/-->
 	</target>
 </project>
