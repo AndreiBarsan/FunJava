@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/annotations"/>
+	<classpathentry kind="lib" path="lib/velocity-1.7/velocity-1.7-dep.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/F:/Copy/IAG/Bachelor/main-project-eclipse/annotation-processor/lib/velocity-1.7/docs/api/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.8.0"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

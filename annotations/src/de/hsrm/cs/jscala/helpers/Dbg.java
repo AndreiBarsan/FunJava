@@ -3,6 +3,8 @@ package de.hsrm.cs.jscala.helpers;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.Diagnostic;
 
+import com.sun.beans.util.Cache.Kind;
+
 /**
  * Created by Andrei Barsan on 12.02.2014, based on code by Prof. Dr. Sven Eric Panitz.
  */
@@ -18,4 +20,8 @@ public class Dbg {
         }
         env.getMessager().printMessage(Diagnostic.Kind.ERROR, "An error has occurred: " + e.getMessage() + "\n" + sb.toString());
     }
+
+	public static void print(ProcessingEnvironment env, String string) {
+		env.getMessager().printMessage(Diagnostic.Kind.NOTE, string);
+	}
 }

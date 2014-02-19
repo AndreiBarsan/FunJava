@@ -2,11 +2,11 @@
 <!-- In eclipse, this should be added as a custom Ant builder (AFTER preProjectBuilder.jar) -->
 <project name="annotation-processor.makejar" default="makejar" basedir=".">
 	<target name="makejar" description="Create a jar for the annotation-processor">
-		<delete file="../annotation-processor/lib/annotation-processor.jar" />
+		<delete file="../annotation-processor/lib/out/annotation-processor.jar" />
 		
 		<!-- We need includes=".", since if it's ommitted, you can have duplicate files in your jar  -->
 		<!-- If you have duplicate files in your jar, you're going to have a bad time. -->
-		<jar 	jarfile="../annotation-processor/lib/annotation-processor.jar" 
+		<jar 	jarfile="../annotation-processor/lib/out/annotation-processor.jar" 
 				basedir="../annotation-processor/bin/" 
 				includes="." 
 				duplicate="fail">
@@ -16,7 +16,9 @@
 			
 			<!-- We also need to make sure we include all dependencies of this project, since otherwise we might find
 				ourselves facing errors where e.g. the annotation classes cannot be found (Data, Ctor) and the build process crashes -->
-			<fileset dir="../annotations/bin/" />
+			<fileset dir = "../annotations/bin/" />
+			
+			<zipfileset includes="**/*.class" src="../annotation-processor/lib/velocity-1.7/velocity-1.7-dep.jar" />
 		</jar>
 		
 		<!-- Restore the original .factorypath -->

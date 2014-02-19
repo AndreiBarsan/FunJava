@@ -3,7 +3,16 @@ package de.hsrm.cs.jscala;
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.VariableElement;
+
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
+import org.apache.velocity.exception.ResourceNotFoundException;
+
+import de.hsrm.cs.jscala.helpers.Dbg;
+
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.List;
 
@@ -40,6 +49,17 @@ class Constructor {
         mkIteratorMethod(out);
         out.write("}\n");
         out.close();
+        
+        // Experimental Apache Velocity stuff
+        VelocityContext context = new VelocityContext();
+        context.put("parentName", theType.fullName);
+        context.put("typeParamDeclaration", theType.getParamList(true));
+        context.put("typeParamUsage", theType.getParamList(false));
+        context.put("name", this.name);
+        context.put("fields", this.params);
+        Template template = Velocity.getTemplate("templates/CaseClass.vm");
+        Writer w = filer.createSourceFile(theType.thePackage + "." + name + "aux").openWriter();
+        template.merge(context, w);        
     }
 
     public static String genCaseHeader(String typeParamsShort, String typeParamsLong, String parentName, String caseName, List<? extends Element> params) {
