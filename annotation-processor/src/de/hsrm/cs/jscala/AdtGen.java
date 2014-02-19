@@ -10,6 +10,7 @@ import javax.tools.Diagnostic;
 
 import org.apache.velocity.app.Velocity;
 
+import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -25,7 +26,7 @@ public class AdtGen extends AbstractProcessor {
     public void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "Processor init called.");
-        
+
         Velocity.init();
     }
 

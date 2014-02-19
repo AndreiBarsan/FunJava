@@ -1,5 +1,5 @@
-Important
-=========
+Important:
+==========
 	- "main" home repo is the eclipse one;
 	- library work will be done in the idea project, since idea is better at keeping
 	the annotation processing and the annotation processing library jar in sync
@@ -10,6 +10,25 @@ Current problems:
 =================
     - no real inheritance for the case classes - specific methods inside them are not possible (e.g. custom toStrings)
     - no additional matching options (no match-by-expression like in Scala)
+
+Applications:
+=============
+    - it's important to find nice uses of pattern matching in Java so that the demo application doesn't suck
+    - Expressions
+        - Add(left: Expression, right: Expression)
+        - Mul( " )
+        - X()
+        - Const(value: Int)
+        - Neg(ex: Expression)
+        - eval(Expression e, int x) { e.match(
+            caseX( () -> x ),
+            caseConst( (val) -> val ),
+            caseAdd( (l, r) -> eval(l, x) + eval(r, x) ),
+            caseMult( (l, r) -> eval(l, x) * eval(r, x) ),
+            caseNeg( (e) -> -eval(e, x) )
+            }
+        - deriv - computes the derivative
+
 
 
 Future ideas:

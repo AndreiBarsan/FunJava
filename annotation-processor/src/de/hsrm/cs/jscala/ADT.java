@@ -36,7 +36,7 @@ public class ADT {
     public List<Constructor> constructors = new ArrayList<>();
     TypeElement typeElement;
     final Filer filer;
-    private ProcessingEnvironment env;
+    ProcessingEnvironment env;
 
     // TODO: move helpers outta here
     /**

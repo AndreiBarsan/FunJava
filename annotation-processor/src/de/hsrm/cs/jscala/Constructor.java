@@ -3,6 +3,7 @@ package de.hsrm.cs.jscala;
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.VariableElement;
+import javax.tools.Diagnostic;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -11,10 +12,9 @@ import org.apache.velocity.exception.ResourceNotFoundException;
 
 import de.hsrm.cs.jscala.helpers.Dbg;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.io.*;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * Responsible for the generation of individual classes for each case.
@@ -52,14 +52,32 @@ class Constructor {
         
         // Experimental Apache Velocity stuff
         VelocityContext context = new VelocityContext();
+
+        context.put("package", theType.thePackage);
         context.put("parentName", theType.fullName);
         context.put("typeParamDeclaration", theType.getParamList(true));
         context.put("typeParamUsage", theType.getParamList(false));
         context.put("name", this.name);
         context.put("fields", this.params);
-        Template template = Velocity.getTemplate("templates/CaseClass.vm");
-        Writer w = filer.createSourceFile(theType.thePackage + "." + name + "aux").openWriter();
-        template.merge(context, w);        
+
+        InputStream is = this.getClass().getResourceAsStream("/templates/CaseClass.vm");
+        Reader reader = new InputStreamReader(is);
+        try {
+            StringWriter sw = new StringWriter();
+            Velocity.evaluate(context, sw, "annotation-processing", reader);
+            Writer fileWriter = filer.createSourceFile(theType.thePackage + "." + name + "Aux").openWriter();
+
+            Velocity.evaluate(context, fileWriter, "annotation-processing", reader);
+            Dbg.print(theType.env, "Result: \n" + sw);
+
+            // IMPORTANT! Otherwise, it will not get parsed!
+            fileWriter.write(sw.toString());
+            fileWriter.close();
+        } catch(Exception e) {
+            // Something went wrong
+            Dbg.print(theType.env, "Something went wrong working with Velocity...");
+            Dbg.printException(theType.env, e);
+        }
     }
 
     public static String genCaseHeader(String typeParamsShort, String typeParamsLong, String parentName, String caseName, List<? extends Element> params) {
