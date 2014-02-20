@@ -2,14 +2,15 @@ Important:
 ==========
 	- "main" home repo is the eclipse one;
 	- library work will be done in the idea project, since idea is better at keeping
-	the annotation processing and the annotation processing library jar in sync
+	the annotation processing and the annotation processing library jar in sync;
 	- IMPORTANT: work done in idea's repo will be pulled into the eclipse repo and uploaded
-	to github!!!
+	to github that way!
 
 Current problems:
 =================
     - no real inheritance for the case classes - specific methods inside them are not possible (e.g. custom toStrings)
     - no additional matching options (no match-by-expression like in Scala)
+    - no current use for the visitor/welcom pattern
 
 Applications:
 =============
@@ -33,18 +34,16 @@ Applications:
 
 Future ideas:
 =============
-    - hook into IDE and process anotations on-the-fly, while also registering them in the IDE => enable auto-complete!
-    and get rid of the mountains of countless syntax errors
     - maybe allow classes to be annotated with @Case; in that case, only generate fields, getters and setters for the data,
     and keep additional methods implemented within;
     - mkToStringMethod (and the other, similar ones) should be more clever! First, check to see if the base class (e.g. Tree<T>
     already implements toString, and if it does, (maybe) don't output anything);
-    - http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/tutorial/tutorial2.html use this to generate the caseXXX methods
-    dynamically, by editing class files (after javac compiles everything)
     - captureCaseXXX holds both the reference to the matched thing, as well as the individual fields
-    - captureXXX (maybe) could ONLY have a reference to what the case class that matched
+    - captureXXX (maybe) could ONLY have a reference to what the case class that matched (see a few tasks above)
     - when a reference to case class is caputred, custom @Case methods would be callable
     - add overloads to the captureXXX methods that allow an extra something -> boolean predicate to match by condition
+    - hook into IDE and process anotations on-the-fly, while also registering them in the IDE => enable auto-complete!
+    and get rid of the mountains of countless syntax errors - already exists in Eclipse
 
 Eclipse-support
 ===============
@@ -66,6 +65,7 @@ Apache Velocity
     
 Javassist
 =========
+    - http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/tutorial/tutorial2.html
     - design a custom post-build step that runs a program based on javassist which generates the proper code; 
     HOWEVER, this would not work since doing so would require the initial build to succeed; which it won't do,
     since we're referring to stuff that would need to be generated first;

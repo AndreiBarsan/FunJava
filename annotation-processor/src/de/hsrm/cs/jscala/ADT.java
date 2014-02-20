@@ -291,6 +291,7 @@ public class ADT {
     }
 
     private void generateCaseBranches() throws IOException {
+        /*
         String sourceFileName = ((thePackage.length() == 0) ? "" : thePackage + ".") + simpleName + "Cases";
         Writer out = filer.createSourceFile(sourceFileName).openWriter();
 
@@ -320,6 +321,13 @@ public class ADT {
 
         out.write("}");
         out.close();
+        */
+
+        VelocityContext context = getTemplateContext();
+        context.put("constructors", constructors);
+        context.put("enclosingName", getEnclosingName());
+        CodeGen.generate(this, filer, context, "Cases.vm", thePackage + "." + getSimpleName() + "Cases");
+
     }
 
     /**

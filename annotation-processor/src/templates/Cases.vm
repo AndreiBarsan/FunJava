@@ -1,0 +1,101 @@
+package $package;
+
+import ${enclosingName}.*;
+import de.hsrm.cs.jscala.helpers.*;
+import java.util.Optional;
+
+#if($typeParamDeclaration.length() > 0)
+	#set( $tpd = "<${typeParamDeclaration}>")
+	#set( $tpu = "<${typeParamUsage}>")
+	#set( $tpdComma = "${typeParamDeclaration}, ")
+	#set( $tpuComma = "${typeParamUsage}, ")
+	#set( $tpdWithB = "<${typeParamDeclaration}, B>")
+#else
+	#set( $tpd = "")
+	#set( $tpu = "")
+	#set( $tpdComma = "")
+	#set( $tpuComma = "")
+	#set( $tpdWithB = "<B>")
+#end
+
+public class ${parentName}Cases {
+
+## Generate non-void methods
+#foreach($ctor in $constructors)
+
+    #if($ctor.params.size() > 0)
+        #set($first = true)
+        #set($paramTypes = "<")
+        #set($getters = "")
+        #foreach($param in $ctor.params)
+            #if($first == true)
+                #set($first = false)
+            #else
+                #set($paramTypes = "${paramTypes}, ")
+                #set($getters = "${getters}, ")
+            #end
+            #set($paramTypes = "${paramTypes}$param.asType().toString()")
+            #set($getters = "${getters}matchedBranch.get$StringUtil.cfirst($param.getSimpleName().toString())()")
+        #end
+        #set($paramTypes = "${paramTypes}, B>")
+    #else
+        #set($paramTypes = "<B>")
+        #set($getters = "")
+    #end
+
+    public static<$tpdComma B> Function1<$parentName$tpu, Optional<B>> case$ctor.getName() (Function${ctor.Params.size()}$paramTypes theCase) {
+        return self -> {
+            if(! (self instanceof $ctor.Name)) return Optional.empty();
+            $ctor.Name$tpu matchedBranch = ($ctor.Name$tpu) self;
+            return Optional.of(theCase.apply($getters));
+        };
+    }
+
+#end
+##
+## Generate void methods
+#foreach($ctor in $constructors)
+
+    #if($ctor.params.size() > 0)
+        #set($first = true)
+        #set($paramTypes = "<")
+        #set($getters = "")
+        #foreach($param in $ctor.params)
+            #if($first == true)
+                #set($first = false)
+            #else
+                #set($paramTypes = "${paramTypes}, ")
+                #set($getters = "${getters}, ")
+            #end
+            #set($paramTypes = "${paramTypes}$param.asType().toString()")
+            #set($getters = "${getters}matchedBranch.get$StringUtil.cfirst($param.getSimpleName().toString())()")
+        #end
+        #set($paramTypes = "${paramTypes}>")
+    #else
+        #set($paramTypes = "")
+        #set($getters = "")
+    #end
+
+    public static $tpd Function1<$parentName$tpu, Optional<Nothing>> case$ctor.getName()V (Consumer${ctor.Params.size()}$paramTypes theCase) {
+        return self -> {
+            if(! (self instanceof $ctor.Name)) return Optional.empty();
+            $ctor.Name$tpu matchedBranch = ($ctor.Name$tpu) self;
+            theCase.apply($getters);
+            return Optional.of(Nothing.VAL);
+        };
+    }
+
+#end
+##
+## Generate the "otherwise" method (the "else" of pattern matching)
+    public static $tpdWithB Function1<$parentName$tpu, Optional<B>> otherwise(Function1<$parentFullName, B> theCase) {
+        return self -> Optional.of(theCase.apply(self));
+    }
+
+    public static $tpd Function1<$parentName$tpu, Optional<Nothing>> otherwiseV(Consumer1<$parentFullName> theCase) {
+        return self -> {
+            theCase.apply(self);
+            return Optional.of(Nothing.VAL);
+        };
+    }
+}

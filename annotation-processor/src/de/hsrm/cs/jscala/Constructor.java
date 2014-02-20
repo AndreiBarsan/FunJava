@@ -20,14 +20,22 @@ import java.util.Scanner;
 /**
  * Responsible for the generation of individual classes for each case.
  */
-class Constructor {
+public class Constructor {
 
-    String name;
+    public String name;
     List<? extends VariableElement> params;
 
     public Constructor(String name, List<? extends VariableElement> params) {
         this.name = name;
         this.params = params;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public List<? extends  VariableElement> getParams() {
+        return params;
     }
 
     public void generateClass(ADT theType, Filer filer) throws IOException {
