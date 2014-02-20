@@ -1,0 +1,15 @@
+package $package;
+
+#if($typeParamDeclaration.length() > 0)
+	#set( $tpd = "<${typeParamDeclaration}>")
+	#set( $tpu = "<${typeParamUsage}>")
+	#set( $tpuComma = "${typeParamUsage}, ")
+#else
+	#set( $tpd = "")
+	#set( $tpu = "")
+	#set( $tpuComma = "")
+#end
+
+public abstract class ${name}Adt$tpd extends $fullName$tpu implements Iterable<Object> {
+    abstract public <b_> b_ welcome(${name}Visitor<${tpuComma}b_> visitor);
+}

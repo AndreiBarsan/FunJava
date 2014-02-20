@@ -52,36 +52,12 @@ class Constructor {
         out.write("}\n");
         out.close();
         */
-        
-        // Experimental Apache Velocity stuff
-        VelocityContext context = new VelocityContext();
-
-        context.put("package", theType.thePackage);
-        context.put("parentName", theType.getSimpleName());
-        context.put("typeParamDeclaration", theType.commaSeparatedTypeParams(true));
-        context.put("typeParamUsage", theType.commaSeparatedTypeParams(false));
+        VelocityContext context = theType.getTemplateContext();
         context.put("name", this.name);
         context.put("fields", this.params);
-        context.put("StringUtil", StringUtil.class);
 
-        InputStream is = this.getClass().getResourceAsStream("/templates/CaseClass.vm");
-        Reader reader = new InputStreamReader(is);
-        try {
-            StringWriter sw = new StringWriter();
-            Velocity.evaluate(context, sw, "annotation-processing", reader);
-            Writer fileWriter = filer.createSourceFile(theType.thePackage + "." + name).openWriter();
-
-            Velocity.evaluate(context, fileWriter, "annotation-processing", reader);
-            Dbg.print(theType.env, "Result: \n" + sw);
-
-            // IMPORTANT! Otherwise, it will not get parsed!
-            fileWriter.write(sw.toString());
-            fileWriter.close();
-        } catch(Exception e) {
-            // Something went wrong
-            Dbg.print(theType.env, "Something went wrong working with Velocity...");
-            Dbg.printException(theType.env, e);
-        }
+        // Experimental Apache Velocity stuff
+        CodeGen.generate(theType, filer, context, "CaseClass.vm", theType.thePackage + "." + this.name);
     }
 
     public static String genCaseHeader(String typeParamsShort, String typeParamsLong, String parentName, String caseName, List<? extends Element> params) {

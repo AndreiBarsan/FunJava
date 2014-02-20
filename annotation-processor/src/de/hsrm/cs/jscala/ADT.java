@@ -1,6 +1,8 @@
 package de.hsrm.cs.jscala;
 
 import de.hsrm.cs.jscala.helpers.Dbg;
+import de.hsrm.cs.jscala.helpers.StringUtil;
+import org.apache.velocity.VelocityContext;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -259,6 +261,8 @@ public class ADT {
     private void generateClass() throws IOException {
         final String fullName = getFullName();
         String sourceFileName = ((thePackage.length() == 0) ? "" : thePackage + ".") + simpleName + "Adt";
+
+        /*
         Writer out = filer.createSourceFile(sourceFileName).openWriter();
 
         out.write(getPackageDef());
@@ -272,6 +276,12 @@ public class ADT {
                 +"b_> visitor);\n");
         out.write("}");
         out.close();
+
+        */
+        VelocityContext context = getTemplateContext();
+        context.put("fullName", getFullName());
+        context.put("name", getSimpleName());
+        CodeGen.generate(this, filer, context, "Adt.vm", thePackage + "." + getSimpleName() + "Adt");
     }
 
     private void generateCaseBranches() throws IOException {
@@ -304,6 +314,19 @@ public class ADT {
 
         out.write("}");
         out.close();
+    }
+
+    /**
+     * Used when generating code using Apache Velocity templates.
+     */
+    public VelocityContext getTemplateContext() {
+        VelocityContext context = new VelocityContext();
+        context.put("package", thePackage);
+        context.put("parentName", getSimpleName());
+        context.put("typeParamDeclaration", commaSeparatedTypeParams(true));
+        context.put("typeParamUsage", commaSeparatedTypeParams(false));
+        context.put("StringUtil", StringUtil.class);
+        return context;
     }
 }
 
