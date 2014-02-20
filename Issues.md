@@ -62,6 +62,7 @@ Apache Velocity
 ===============
     - template engine that could help us generate code in a nicer fashion (no more out.write("blah...");
     - it *can* be used to generate source code!
+    - DONE!
     
 Javassist
 =========

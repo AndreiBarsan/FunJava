@@ -7,12 +7,9 @@ import org.apache.velocity.VelocityContext;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
-import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -20,6 +17,9 @@ import java.util.List;
  */
 public class ADT {
 
+    /**
+     * The full name of this class, complete with packages, enclosing classes and name.
+     */
     String fullName;
 
     /**
@@ -40,76 +40,22 @@ public class ADT {
     final Filer filer;
     ProcessingEnvironment env;
 
-    // TODO: move helpers outta here
-    /**
-     * n == 1 means lastIndexOf
-     */
-    public static int lastNthIndexOf(String s, char c, int n) {
-        int occ = 0;
-        for(int i = s.length() - 1; i >= 0; --i) {
-            if(s.charAt(i) == c) {
-                occ++;
-            }
-
-            if(n == occ) {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
-    public static int nthIndexOf(String s, char c, int n) {
-        int occ = 0;
-        for(int i = 0; i < s.length(); ++i) {
-            if(s.charAt(i) == c) {
-                occ++;
-            }
-
-            if(n == occ) {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
-
-
-    /**
-     * Helper that returns the full type parameter specification of a given type parameter, as a string (includes
-     * type boundaries).
-     */
-    public static String getFullTypeParamName(TypeParameterElement e) {
-        StringBuilder sb = new StringBuilder();
-        String mainType = e.asType().toString();
-        sb.append(mainType);
-
-        List<? extends TypeMirror> bounds = e.getBounds();
-        if(bounds.size() == 0) {
-            return sb.toString();
-        }
-        else {
-            sb.append(" extends ");
-            boolean first = true;
-            for(TypeMirror tm : bounds) {
-                if(first) {
-                    first = false;
-                } else {
-                    sb.append(" & ");
-                }
-
-                sb.append(tm.toString());
-            }
-
-            return sb.toString();
-        }
-    }
-
     public ADT(TypeElement typeElement, ProcessingEnvironment env) {
         fullName = typeElement.getQualifiedName().toString();
         env.getMessager().printMessage(Diagnostic.Kind.NOTE, "Processing type: " + fullName);
 
+        this.typeElement = typeElement;
+        this.env = env;
+        this.filer = env.getFiler();
+
+        resolveEnclosingTypes();
+    }
+
+    /**
+     * Figures out if our type is nested and takes the necessary precautions in order to
+     * generate correct code.
+     */
+    private void resolveEnclosingTypes() {
         Element enclosing  = typeElement.getEnclosingElement();
         int enclosingClasses = 0;
 
@@ -134,7 +80,7 @@ public class ADT {
 
         if(fullName.contains(".")) {
             // The index of the dot that separates the package name and the top wrapper class, in case this class is nested
-            int psDotIndex = lastNthIndexOf(fullName, '.', enclosingClasses + 1);
+            int psDotIndex = StringUtil.lastNthIndexOf(fullName, '.', enclosingClasses + 1);
             thePackage = fullName.substring(0, psDotIndex);
             if(typeElement.getNestingKind().isNested()) {
                 enclosingTypes = fullName.substring(psDotIndex + 1, fullName.lastIndexOf("."));
@@ -148,21 +94,10 @@ public class ADT {
             simpleName = fullName;
             thePackage = "";
         }
-
-        this.typeElement = typeElement;
-        this.env = env;
-        this.filer = env.getFiler();
-    }
-
-    String getFullName() {
-        return fullName;
-    }
-
-    String getSimpleName() {
-        return simpleName;
     }
 
     /**
+     * Returns a comma-separated list of this type's type parameters.
      * @param full Whether to return the FULL type parameter specification, e.g. <T extends Comparable<T>> or the short one (e.g. <T>).
      */
     String commaSeparatedTypeParams(boolean full){
@@ -181,7 +116,7 @@ public class ADT {
                 }
 
                 if(full) {
-                    sb.append(getFullTypeParamName(e));
+                    sb.append(StringUtil.getFullTypeParamName(e));
                 }
                 else {
                     sb.append(e.getSimpleName());
@@ -190,16 +125,6 @@ public class ADT {
 
             return sb.toString();
         }
-    }
-
-    // TODO: remove this when switching to full-fledged templating
-    String getParamList(boolean full) {
-        String pars = commaSeparatedTypeParams(full);
-        return pars.length() == 0 ? "" : "<" + pars + ">";
-    }
-
-    String getPackageDef() {
-        return thePackage.length() == 0 ? "" : "package " + thePackage + ";\n\n";
     }
 
     /**
@@ -237,97 +162,23 @@ public class ADT {
     }
 
     private void generateVisitorClass() throws Exception {
-        /*
-        final String csName = simpleName + "Visitor";
-        final String fTypeParams = commaSeparatedTypeParams(true);
-        final String fullName = csName + "<" + fTypeParams + (fTypeParams.length() == 0 ? "" : ",") +"result>";
-
-        Writer out = filer.createSourceFile(thePackage+"."+csName).openWriter();
-        out.write(getPackageDef());
-        out.write("\n\n");
-        out.write("public abstract class ");
-        out.write(fullName+"{\n");
-        for (Constructor c:constructors)
-            out.write("  "+c.mkVisitMethod(this)+"\n");
-
-        out.write("  public result visit("+ getFullName() + getParamList(false) + " xs){");
-        out.write("\n    throw new RuntimeException(");
-        out.write("\"unmatched pattern: \"+xs.getClass());\n");
-        out.write("  }");
-
-        out.write("}");
-        out.close();
-        */
-
         VelocityContext context = getTemplateContext();
         context.put("constructors", constructors.stream().map(c -> c.name).iterator());
-        CodeGen.generate(this, filer, context, "Visitor.vm", thePackage + "." + getSimpleName() + "Visitor");
+        CodeGen.generate(this, filer, context, "Visitor.vm", thePackage + "." + simpleName + "Visitor");
     }
 
     private void generateClass() throws IOException {
-        //final String fullName = getFullName();
-        // String sourceFileName = ((thePackage.length() == 0) ? "" : thePackage + ".") + simpleName + "Adt";
-
-        /*
-        Writer out = filer.createSourceFile(sourceFileName).openWriter();
-
-        out.write(getPackageDef());
-        out.write("public abstract class ");
-        out.write(getSimpleName() + "Adt" + getParamList(true));
-        out.write(" extends "+ fullName + getParamList(false));
-        out.write(" implements Iterable<Object>{\n");
-        out.write("  abstract public <b_> b_ welcome("
-                + simpleName + "Visitor<" + commaSeparatedTypeParams(false)
-                + (commaSeparatedTypeParams(false).length() == 0 ? "" : "," )
-                +"b_> visitor);\n");
-        out.write("}");
-        out.close();
-
-        */
         VelocityContext context = getTemplateContext();
-        context.put("fullName", getFullName());
-        context.put("name", getSimpleName());
-        CodeGen.generate(this, filer, context, "Adt.vm", thePackage + "." + getSimpleName() + "Adt");
+        context.put("fullName", fullName);
+        context.put("name", simpleName);
+        CodeGen.generate(this, filer, context, "Adt.vm", thePackage + "." + simpleName + "Adt");
     }
 
     private void generateCaseBranches() throws IOException {
-        /*
-        String sourceFileName = ((thePackage.length() == 0) ? "" : thePackage + ".") + simpleName + "Cases";
-        Writer out = filer.createSourceFile(sourceFileName).openWriter();
-
-        out.write(getPackageDef());
-        out.write("\nimport " + getEnclosingName() + ".*;\n");
-        out.write("\nimport de.hsrm.cs.jscala.helpers.*;\n");
-        out.write("\nimport java.util.Optional;\n\n");
-        out.write("public class " + getSimpleName() + "Cases { \n");
-
-        for(Constructor c : constructors) {
-            out.write(c.genStaticCaseMethod(this) + "\n");
-            out.write(c.genStaticCaseVoidMethod(this) + "\n");
-        }
-
-        // Generate the "otherwise" branch code (which matches anything)
-        String typeParamsLong = commaSeparatedTypeParams(true);
-        String typeParamsShort = commaSeparatedTypeParams(false);
-        // String wrappedTypeParamsShort = typeParamsShort.length() == 0 ? "" : "<" + typeParamsShort + ">";
-        out.write(Constructor.genCaseHeader(typeParamsShort, typeParamsLong, getSimpleName(), "otherwise", Arrays.asList(typeElement)));
-        out.write("\treturn self -> Optional.of(theCase.apply(self));\n");
-        out.write("}\n");
-
-        // Generate the "otherwiseV" (void) branch code (which matches anything but doesn't return anything either)
-        out.write(Constructor.genCaseHeader(typeParamsShort, typeParamsLong, getSimpleName(), "otherwiseV", Arrays.asList(typeElement), false));
-        out.write("\treturn self -> { theCase.apply(self); return Optional.of(Nothing.VAL); };\n");
-        out.write("}\n");
-
-        out.write("}");
-        out.close();
-        */
-
         VelocityContext context = getTemplateContext();
         context.put("constructors", constructors);
         context.put("enclosingName", getEnclosingName());
-        CodeGen.generate(this, filer, context, "Cases.vm", thePackage + "." + getSimpleName() + "Cases");
-
+        CodeGen.generate(this, filer, context, "Cases.vm", thePackage + "." + simpleName + "Cases");
     }
 
     /**
@@ -336,8 +187,8 @@ public class ADT {
     public VelocityContext getTemplateContext() {
         VelocityContext context = new VelocityContext();
         context.put("package", thePackage);
-        context.put("parentName", getSimpleName());
-        context.put("parentFullName", getFullName());
+        context.put("parentName", simpleName);
+        context.put("parentFullName", fullName);
         context.put("typeParamDeclaration", commaSeparatedTypeParams(true));
         context.put("typeParamUsage", commaSeparatedTypeParams(false));
         context.put("StringUtil", StringUtil.class);
