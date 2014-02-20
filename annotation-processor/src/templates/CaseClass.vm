@@ -2,16 +2,15 @@ package $package;
 
 import java.util.*;
 
-#(set $baseClass = "${parentName}Adt")
-
+#set( $baseClass = "${parentName}Adt")
 #if($typeParamDeclaration.length() > 0)
-	#(set $tpd = "<${typeParamDeclaration}>")
-	#(set $tpu = "<${typeParamUsage}>")
-	#(set $tpuComma = "${typeParamUsage}, ")
+	#set( $tpd = "<${typeParamDeclaration}>")
+	#set( $tpu = "<${typeParamUsage}>")
+	#set( $tpuComma = "${typeParamUsage}, ")
 #else
-	#(set $tpd = "")
-	#(set $tpu = "")
-	#(set $tpuComma = "")
+	#set( $tpd = "")
+	#set( $tpu = "")
+	#set( $tpuComma = "")
 #end
 
 public class $name$tpd extends $baseClass$tpu {
@@ -20,4 +19,78 @@ public class $name$tpd extends $baseClass$tpu {
 	private $field.asType().toString() $field.getSimpleName().toString();
 #end
 
+#set($first = true)
+#set($ctorParams = "")
+#foreach($field in $fields)
+    #if($first == true)
+        #set($first = false)
+    #else
+        #set($ctorParams = "${ctorParams}, ")
+    #end
+    #set($ctorParams = "$ctorParams$field.asType().toString() $field.getSimpleName().toString()")
+#end
+
+    public $name($ctorParams) {
+#foreach($field in $fields)
+        this.$field.getSimpleName().toString() = $field.getSimpleName().toString();
+#end
+    }
+
+## Getters
+#foreach($field in $fields)
+    public $field.asType().toString() get$StringUtil.cfirst($field.getSimpleName().toString())() {
+    	return $field.getSimpleName().toString();
+    }
+
+#end
+##
+## Setters
+#foreach($field in $fields)
+	public void set$StringUtil.cfirst($field.getSimpleName().toString())($field.asType().toString() $field.getSimpleName().toString()) {
+		this.$field.getSimpleName().toString() = $field.getSimpleName().toString();
+	}
+
+#end
+## Welcome visitor method
+    public <_b> _b welcome(${parentName}Visitor<${tpuComma}_b> visitor) {
+		return visitor.visit(this);
+	}
+## Prepare and render the toString() method
+#set($first = true)
+#set($q = '"')
+#set($toStringFormat = "")
+#foreach($field in $fields)
+    #if($first == true)
+        #set($first = false)
+    #else
+        #set($toStringFormat = "${toStringFormat}+ $q, $q")
+    #end
+    #set($toStringFormat = "${toStringFormat}+ $field.getSimpleName().toString()")
+#end
+
+    public String toString() {
+        return "$name(" $toStringFormat + ");";
+    }
+
+    @SuppressWarnings({ "unchecked", "unused" })
+    public boolean equals(Object other) {
+        if(! (other instanceof $name)) return false;
+        if(null == other) return false;
+        if(this == other) return true;
+
+        final $name$tpu o = ($name$tpu) other;
+        return true
+#foreach($field in $fields)
+            && ${field.getSimpleName().toString()}.equals(o.$field.getSimpleName().toString())
+#end
+        ;
+    }
+
+    public Iterator<Object> iterator() {
+        List<Object> res = new ArrayList<Object>();
+#foreach($field in $fields)
+        res.add($field.getSimpleName().toString());
+#end
+        return res.iterator();
+    }
 }

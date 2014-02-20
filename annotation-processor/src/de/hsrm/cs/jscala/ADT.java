@@ -190,6 +190,7 @@ public class ADT {
         }
     }
 
+    // TODO: remove this when switching to full-fledged templating
     String getParamList(boolean full) {
         String pars = commaSeparatedTypeParams(full);
         return pars.length() == 0 ? "" : "<" + pars + ">";

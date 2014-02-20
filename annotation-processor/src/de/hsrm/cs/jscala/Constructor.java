@@ -5,6 +5,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
 
+import de.hsrm.cs.jscala.helpers.StringUtil;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
@@ -30,6 +31,7 @@ class Constructor {
     }
 
     public void generateClass(ADT theType, Filer filer) throws IOException {
+        /*
         Writer out = filer.createSourceFile(theType.thePackage + "." + name).openWriter();
         out.write(theType.getPackageDef());
         out.write("public class ");
@@ -49,23 +51,25 @@ class Constructor {
         mkIteratorMethod(out);
         out.write("}\n");
         out.close();
+        */
         
         // Experimental Apache Velocity stuff
         VelocityContext context = new VelocityContext();
 
         context.put("package", theType.thePackage);
-        context.put("parentName", theType.fullName);
-        context.put("typeParamDeclaration", theType.getParamList(true));
-        context.put("typeParamUsage", theType.getParamList(false));
+        context.put("parentName", theType.getSimpleName());
+        context.put("typeParamDeclaration", theType.commaSeparatedTypeParams(true));
+        context.put("typeParamUsage", theType.commaSeparatedTypeParams(false));
         context.put("name", this.name);
         context.put("fields", this.params);
+        context.put("StringUtil", StringUtil.class);
 
         InputStream is = this.getClass().getResourceAsStream("/templates/CaseClass.vm");
         Reader reader = new InputStreamReader(is);
         try {
             StringWriter sw = new StringWriter();
             Velocity.evaluate(context, sw, "annotation-processing", reader);
-            Writer fileWriter = filer.createSourceFile(theType.thePackage + "." + name + "Aux").openWriter();
+            Writer fileWriter = filer.createSourceFile(theType.thePackage + "." + name).openWriter();
 
             Velocity.evaluate(context, fileWriter, "annotation-processing", reader);
             Dbg.print(theType.env, "Result: \n" + sw);

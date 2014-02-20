@@ -3,6 +3,10 @@ package de.hsrm.cs.jscala.examples.trees.tests;
 // Important to import EVERYTHING from trees so that not just Tree, but the future-generated Branch and Empty get imported
 import de.hsrm.cs.jscala.examples.trees.*;
 
+// Access the case methods
+import static de.hsrm.cs.jscala.examples.trees.TreeCases.*;
+
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -62,5 +66,31 @@ public class TreeTests {
 
         int treeFoldSum = t.fold(0, 0, (a, b) -> a + b);
         assertEquals(expectedSum, treeFoldSum);
+    }
+
+    @Test
+    public void testEmptyEquals() {
+        Tree<Integer> t1 = new Empty<>();
+        Tree<Integer> t2 = new Empty<>();
+
+        assertTrue(t1.equals(t2));
+        assertTrue(t2.equals(t1));
+    }
+
+    @Test
+    public void testBranchEquals() {
+        Tree<Integer> t1 = new Branch<>(new Empty<>(), 42, new Empty<>());
+        Tree<Integer> t2 = new Branch<>(new Empty<>(), 43, new Empty<>());
+
+        assertFalse(t1.equals(t2));
+        assertFalse(t2.equals(t1));
+
+        t2 = t2.match(
+                caseEmpty(() -> new Empty<>()),
+                caseBranch((l, d, r) -> new Branch<>(l, 42, r))
+            );
+
+        assertTrue(t1.equals(t2));
+        assertTrue(t2.equals(t1));
     }
 }
