@@ -1,0 +1,22 @@
+package $package;
+
+#if($typeParamDeclaration.length() > 0)
+	#set( $tpd = "<${typeParamDeclaration}>")
+	#set( $tpu = "<${typeParamUsage}>")
+	#set( $tpdComma = "${typeParamDeclaration}, ")
+#else
+	#set( $tpd = "")
+	#set( $tpu = "")
+	#set( $tpdComma = "")
+#end
+
+public abstract class ${parentName}Visitor<$tpdComma _R> {
+
+#foreach($ctor in $constructors)
+    public abstract _R visit($ctor$tpu _ignore);
+
+#end
+    public _R visit($parentFullName$tpu xs) {
+        throw new RuntimeException("Unmatched pattern: " + xs.getClass());
+    }
+}

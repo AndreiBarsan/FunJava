@@ -237,6 +237,7 @@ public class ADT {
     }
 
     private void generateVisitorClass() throws Exception {
+        /*
         final String csName = simpleName + "Visitor";
         final String fTypeParams = commaSeparatedTypeParams(true);
         final String fullName = csName + "<" + fTypeParams + (fTypeParams.length() == 0 ? "" : ",") +"result>";
@@ -256,11 +257,16 @@ public class ADT {
 
         out.write("}");
         out.close();
+        */
+
+        VelocityContext context = getTemplateContext();
+        context.put("constructors", constructors.stream().map(c -> c.name).iterator());
+        CodeGen.generate(this, filer, context, "Visitor.vm", thePackage + "." + getSimpleName() + "Visitor");
     }
 
     private void generateClass() throws IOException {
-        final String fullName = getFullName();
-        String sourceFileName = ((thePackage.length() == 0) ? "" : thePackage + ".") + simpleName + "Adt";
+        //final String fullName = getFullName();
+        // String sourceFileName = ((thePackage.length() == 0) ? "" : thePackage + ".") + simpleName + "Adt";
 
         /*
         Writer out = filer.createSourceFile(sourceFileName).openWriter();
@@ -323,6 +329,7 @@ public class ADT {
         VelocityContext context = new VelocityContext();
         context.put("package", thePackage);
         context.put("parentName", getSimpleName());
+        context.put("parentFullName", getFullName());
         context.put("typeParamDeclaration", commaSeparatedTypeParams(true));
         context.put("typeParamUsage", commaSeparatedTypeParams(false));
         context.put("StringUtil", StringUtil.class);
