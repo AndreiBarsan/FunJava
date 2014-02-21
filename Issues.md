@@ -9,7 +9,6 @@ Important:
 Current problems:
 =================
     - no real inheritance for the case classes - specific methods inside them are not possible (e.g. custom toStrings)
-    - no additional matching options (no match-by-expression like in Scala)
     - no current use for the visitor/welcom pattern
 
 Applications:
@@ -35,15 +34,15 @@ Applications:
 Future ideas:
 =============
     - maybe allow classes to be annotated with @Case; in that case, only generate fields, getters and setters for the data,
-    and keep additional methods implemented within;
+    and keep additional methods implemented within; when a reference to case class is caputred, custom @Case methods would be callable
     - mkToStringMethod (and the other, similar ones) should be more clever! First, check to see if the base class (e.g. Tree<T>
     already implements toString, and if it does, (maybe) don't output anything);
-    - captureCaseXXX holds both the reference to the matched thing, as well as the individual fields
-    - captureXXX (maybe) could ONLY have a reference to what the case class that matched (see a few tasks above)
-    - when a reference to case class is caputred, custom @Case methods would be callable
-    - add overloads to the captureXXX methods that allow an extra something -> boolean predicate to match by condition
-    - hook into IDE and process anotations on-the-fly, while also registering them in the IDE => enable auto-complete!
-    and get rid of the mountains of countless syntax errors - already exists in Eclipse
+    [v] captureCaseXXX holds both the reference to the matched thing, as well as the individual fields
+    [v] captureXXX (maybe) could ONLY have a reference to what the case class that matched (see a few tasks above)
+    [v] done the above ones, without having to use different method names
+    [v] add overloads to the captureXXX methods that allow an extra something -> boolean predicate to match by condition
+    [v] hook into IDE and process anotations on-the-fly, while also registering them in the IDE => enable auto-complete!
+    and get rid of the mountains of countless syntax errors - already exists in Eclipse, no need to reinvent the wheel in IDEA
 
 Eclipse-support
 ===============
