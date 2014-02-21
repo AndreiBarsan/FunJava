@@ -25,7 +25,9 @@ public class ${parentName}Cases {
 
     #if($ctor.params.size() > 0)
         #set($first = true)
+        ## The types for the actual case function
         #set($paramTypes = "<")
+        ## The getters that should be used when applying the c ase
         #set($getters = "")
         #foreach($param in $ctor.params)
             #if($first == true)
@@ -33,23 +35,67 @@ public class ${parentName}Cases {
             #else
                 #set($paramTypes = "${paramTypes}, ")
                 #set($getters = "${getters}, ")
+                #set($evalTypes = "${evalTypes}, ")
             #end
             #set($paramTypes = "${paramTypes}$param.asType().toString()")
             #set($getters = "${getters}matchedBranch.get$StringUtil.cfirst($param.getSimpleName().toString())()")
         #end
+        ##
+        ## The types for the case condition -> always return a Boolean
+        #set($evalTypes = "${paramTypes}, Boolean>")
+        ##
         #set($paramTypes = "${paramTypes}, B>")
     #else
         #set($paramTypes = "<B>")
         #set($getters = "")
+        #set($evalTypes = "<Boolean>")
     #end
 
-    public static<$tpdComma B> Function1<$parentName$tpu, Optional<B>> case$ctor.getName() (Function${ctor.Params.size()}$paramTypes theCase) {
+    public static <${tpdComma}B> Function1<$parentName$tpu, Optional<B>> case$ctor.getName() (Function$ctor.Params.size()$paramTypes theCase) {
         return self -> {
             if(! (self instanceof $ctor.Name)) return Optional.empty();
             $ctor.Name$tpu matchedBranch = ($ctor.Name$tpu) self;
             return Optional.of(theCase.apply($getters));
         };
     }
+
+    public static <${tpdComma}B> Function1<$parentName$tpu, Optional<B>> case$ctor.getName() (
+        Function$ctor.Params.size()$evalTypes condition,
+        Function$ctor.Params.size()$paramTypes theCase)
+    {
+        return self -> {
+            if(! (self instanceof $ctor.Name)) return Optional.empty();
+            $ctor.Name$tpu matchedBranch = ($ctor.Name$tpu) self;
+            if(! (condition.apply($getters))) return Optional.empty();
+            return Optional.of(theCase.apply($getters));
+        };
+    }
+
+## If constructors have more than one parameter, generate methods to allow cases where you capture
+## the whole match, not its components.
+#if($ctor.Params.size() > 1)
+    public static <${tpdComma}B> Function1<$parentName$tpu, Optional<B>> case$ctor.getName() (
+        Function1<$ctor.Name$tpu, Boolean> condition,
+        Function1<$ctor.Name$tpu, B> theCase)
+    {
+        return self -> {
+            if(! (self instanceof $ctor.Name)) return Optional.empty();
+            $ctor.Name$tpu matchedBranch = ($ctor.Name$tpu) self;
+            if(! (condition.apply(matchedBranch))) return Optional.empty();
+            return Optional.of(theCase.apply(matchedBranch));
+        };
+    }
+
+    public static <${tpdComma}B> Function1<$parentName$tpu, Optional<B>> case$ctor.getName() (
+            Function1<$ctor.Name$tpu, B> theCase)
+        {
+            return self -> {
+                if(! (self instanceof $ctor.Name)) return Optional.empty();
+                $ctor.Name$tpu matchedBranch = ($ctor.Name$tpu) self;
+                return Optional.of(theCase.apply(matchedBranch));
+            };
+        }
+#end
 
 #end
 ##
@@ -70,8 +116,10 @@ public class ${parentName}Cases {
             #set($paramTypes = "${paramTypes}$param.asType().toString()")
             #set($getters = "${getters}matchedBranch.get$StringUtil.cfirst($param.getSimpleName().toString())()")
         #end
+        #set($evalTypes  = "${paramTypes}, Boolean>")
         #set($paramTypes = "${paramTypes}>")
     #else
+        #set($evalTypes = "<Boolean>")
         #set($paramTypes = "")
         #set($getters = "")
     #end
@@ -85,7 +133,46 @@ public class ${parentName}Cases {
         };
     }
 
+    public static $tpd Function1<$parentName$tpu, Optional<Nothing>> case$ctor.getName()V (
+        Function$ctor.Params.size()$evalTypes condition,
+        Consumer${ctor.Params.size()}$paramTypes theCase)
+    {
+        return self -> {
+            if(! (self instanceof $ctor.Name)) return Optional.empty();
+            $ctor.Name$tpu matchedBranch = ($ctor.Name$tpu) self;
+            if(! condition.apply($getters)) return Optional.empty();
+            theCase.apply($getters);
+            return Optional.of(Nothing.VAL);
+        };
+    }
+
+#if($ctor.Params.size() > 1)
+    public static $tpd Function1<$parentName$tpu, Optional<Nothing>> case$ctor.getName()V (
+        Function1<$ctor.Name$tpu, Boolean> condition,
+        Consumer1<$ctor.Name$tpu> theCase)
+    {
+        return self -> {
+            if(! (self instanceof $ctor.Name)) return Optional.empty();
+            $ctor.Name$tpu matchedBranch = ($ctor.Name$tpu) self;
+            if(! (condition.apply(matchedBranch))) return Optional.empty();
+            theCase.apply(matchedBranch);
+            return Optional.of(Nothing.VAL);
+        };
+    }
+
+    public static $tpd Function1<$parentName$tpu, Optional<Nothing>> case$ctor.getName()V (
+        Consumer1<$ctor.Name$tpu> theCase)
+    {
+        return self -> {
+            if(! (self instanceof $ctor.Name)) return Optional.empty();
+            $ctor.Name$tpu matchedBranch = ($ctor.Name$tpu) self;
+            theCase.apply(matchedBranch);
+            return Optional.of(Nothing.VAL);
+        };
+    }
 #end
+
+#end ## Foreach through cases to generate
 ##
 ## Generate the "otherwise" method (the "else" of pattern matching)
     public static $tpdWithB Function1<$parentName$tpu, Optional<B>> otherwise(Function1<$parentFullName, B> theCase) {

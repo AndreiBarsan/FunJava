@@ -93,4 +93,29 @@ public class TreeTests {
         assertTrue(t1.equals(t2));
         assertTrue(t2.equals(t1));
     }
+
+    @Test
+    public void testBranchCondition() {
+        Tree<String> someTree = new Branch<>(new Empty<>(), "hello", new Empty<>());
+
+        Integer result = someTree.match(
+            caseEmpty(() -> 0),
+            caseBranch(t -> t.getData().contains("not here"), t -> 0 ),
+            caseBranch(t -> t.getData().contains("ell"), t -> 1 ),
+            caseBranch(t -> 0)
+        );
+
+        assertEquals(Integer.valueOf(1), result);
+    }
+
+    @Test
+    public void testBranchConditionVoid() {
+        Tree<String> someTree = new Branch<>(new Empty<>(), "hello", new Empty<>());
+        someTree.match(
+                caseEmptyV(() -> fail("Matched Empty instead of Branch")),
+                caseBranchV(t -> t.getData().contains("not here"), t -> fail("Matched condition that shouldn't be matched") ),
+                caseBranchV(t -> t.getData().contains("ell"), t -> {} ),
+                caseBranchV(t -> fail("Failed to match correct condition"))
+        );
+    }
 }

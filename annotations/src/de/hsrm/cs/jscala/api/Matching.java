@@ -7,6 +7,7 @@ import java.util.Optional;
 
 /**
  * Created by Andrei Barsan on 13.02.2014, based on code by Prof. Dr. Sven Eric Panitz.
+ * All objects wishing to be used with pattern matching should have this interface.
  */
 public interface Matching<A> {
     /**
